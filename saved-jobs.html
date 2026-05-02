@@ -319,11 +319,15 @@ async function loadSupabaseModule() {
 async function initSupabase() {
     const cfg = await apiCall('getClientConfig', {});
     supabaseConfigured = Boolean(cfg.supabaseConfigured && cfg.supabaseUrl && cfg.supabaseAnonKey);
-    if (!supabaseConfigured) throw new Error('Supabase is not configured on this server (.env).');
+    if (!supabaseConfigured) {
+        supabaseClient = null;
+        return false;
+    }
     const createClient = await loadSupabaseModule();
     supabaseClient = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
+    return true;
 }
 
 function loNameFromFormData(fd) {
@@ -365,6 +369,10 @@ function setViews({ list, detail }) {
 
 async function loadList() {
     const mount = document.getElementById('jobListMount');
+    if (!supabaseClient) {
+        mount.innerHTML = '<p class="empty-state">Sign-in is unavailable (Supabase not configured).</p>';
+        return;
+    }
     mount.innerHTML = '<p class="loading">Loading…</p>';
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
@@ -412,6 +420,11 @@ async function loadList() {
 async function loadDetail(id) {
     const meta = document.getElementById('detailMeta');
     const art = document.getElementById('analysisMount');
+    if (!supabaseClient) {
+        meta.innerHTML = '<span>Sign-in unavailable.</span>';
+        art.innerHTML = '';
+        return;
+    }
     meta.innerHTML = '<span>Loading…</span>';
     art.innerHTML = '';
     const { data, error } = await supabaseClient
@@ -441,6 +454,11 @@ async function loadDetail(id) {
 async function signIn() {
     const err = document.getElementById('authError');
     err.textContent = '';
+    if (!supabaseClient) {
+        err.textContent =
+            'Supabase is not connected. Add SUPABASE_URL and SUPABASE_ANON_KEY to this project on Vercel (Environment Variables), redeploy, and refresh this page.';
+        return;
+    }
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     const btn = document.getElementById('authSignInBtn');
@@ -457,6 +475,10 @@ async function signIn() {
 }
 
 async function signOut() {
+    if (!supabaseClient) {
+        showGate();
+        return;
+    }
     await supabaseClient.auth.signOut({ scope: 'local' });
     showGate();
 }
@@ -476,6 +498,11 @@ async function route() {
     const id = params.get('id');
     const back = document.getElementById('backToList');
     if (back) back.href = jobsBasePath();
+
+    if (!supabaseClient) {
+        showGate();
+        return;
+    }
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
@@ -498,16 +525,25 @@ document.getElementById('authPassword')?.addEventListener('keydown', (ev) => {
 
 (async function init() {
     try {
-        await initSupabase();
-        await route();
-        supabaseClient.auth.onAuthStateChange((event) => {
-            if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
-            void route();
-        });
+        const ready = await initSupabase();
+        if (ready) {
+            await route();
+            supabaseClient.auth.onAuthStateChange((event) => {
+                if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
+                void route();
+            });
+        } else {
+            document.getElementById('authGate').hidden = false;
+            document.getElementById('mainApp').hidden = true;
+            document.getElementById('authError').textContent =
+                'Supabase is not configured on the server. In Vercel → Project → Settings → Environment Variables, set SUPABASE_URL and SUPABASE_ANON_KEY for this deployment, redeploy, then refresh.';
+            document.getElementById('authSignInBtn').disabled = true;
+        }
     } catch (e) {
         document.getElementById('authGate').hidden = false;
         document.getElementById('mainApp').hidden = true;
         document.getElementById('authError').textContent = e.message || String(e);
+        document.getElementById('authSignInBtn').disabled = true;
     } finally {
         document.getElementById('appBootstrap').setAttribute('hidden', '');
     }
