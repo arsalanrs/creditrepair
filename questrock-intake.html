@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Repair Bot — Credit Optimization Intake</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --qr-navy: #132238;
+            --qr-navy-mid: #1a2f4a;
+            --qr-navy-soft: #243652;
+            --qr-orange: #f26722;
+            --qr-orange-hover: #d95a1c;
+            --qr-bg-top: #fdfaf3;
+            --qr-bg-bot: #f0ebe3;
+            --qr-text: #2c3544;
+            --qr-muted: #6b7280;
+            --qr-line: #e5e7eb;
+            --qr-input-dark: rgba(255,255,255,0.08);
+            --qr-input-dark-border: rgba(255,255,255,0.18);
+            --qr-radius-card: 20px;
+            --qr-radius: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, var(--qr-bg-top) 0%, var(--qr-bg-bot) 100%);
+            color: var(--qr-text);
+            min-height: 100vh;
+            padding: 28px 16px 48px;
+        }
+
+        .page {
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .brand-bar {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .brand-lockup {
+            min-height: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .brand-logo {
+            display: block;
+            margin: 0 auto;
+            max-width: min(280px, 88vw);
+            width: auto;
+            height: auto;
+            min-height: 40px;
+            max-height: 56px;
+            object-fit: contain;
+        }
+        .brand-title {
+            margin-top: 14px;
+            font-size: clamp(1.35rem, 4.2vw, 1.85rem);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--qr-navy);
+            line-height: 1.15;
+        }
+        .brand-tagline {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            color: var(--qr-muted);
+        }
+
+        .shell {
+            background: #fff;
+            border-radius: var(--qr-radius-card);
+            box-shadow: 0 24px 48px rgba(19, 34, 56, 0.12), 0 4px 12px rgba(19, 34, 56, 0.06);
+            overflow: hidden;
+        }
+
+        .search-panel {
+            background: linear-gradient(165deg, var(--qr-navy-mid) 0%, var(--qr-navy) 100%);
+            color: #fff;
+            padding: 22px 24px 0;
+        }
+        .search-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-label .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--qr-orange);
+            flex-shrink: 0;
+        }
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        @media (max-width: 720px) {
+            .search-grid { grid-template-columns: 1fr; }
+        }
+        .input-dark, .search-panel select.input-dark {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--qr-radius);
+            border: 1px solid var(--qr-input-dark-border);
+            background: var(--qr-input-dark);
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .input-dark::placeholder { color: rgba(255,255,255,0.45); }
+        .search-panel select.input-dark option { color: #111; background: #fff; }
+        .btn-search {
+            background: var(--qr-orange);
+            color: #fff;
+            border: none;
+            padding: 0 22px;
+            border-radius: var(--qr-radius);
+            font-weight: 700;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-search:hover { background: var(--qr-orange-hover); }
+        .btn-search:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        .search-hint {
+            font-size: 12px;
+            font-style: italic;
+            color: rgba(255,255,255,0.45);
+            margin-top: 12px;
+            padding-bottom: 16px;
+        }
+        .search-results {
+            max-height: 220px;
+            overflow-y: auto;
+            border-radius: var(--qr-radius);
+            display: none;
+            background: #fff;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .search-results.visible { display: block; }
+        .loan-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--qr-line);
+            transition: background 0.15s;
+        }
+        .loan-item:hover { background: #eef4ff; }
+        .loan-item .name { font-weight: 700; color: var(--qr-navy); font-size: 14px; }
+        .loan-item .meta { font-size: 12px; color: var(--qr-muted); margin-top: 4px; }
+        .selected-loan {
+            display: none;
+            background: rgba(40, 167, 69, 0.15);
+            border: 1px solid rgba(40, 167, 69, 0.35);
+            border-radius: var(--qr-radius);
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .selected-loan.visible { display: flex; }
+        .selected-loan .info { font-weight: 700; color: #155724; }
+
+        .cr-status {
+            display: none;
+            margin-bottom: 10px;
+            padding: 10px 14px;
+            border-radius: var(--qr-radius);
+            font-size: 13px;
+        }
+        .cr-status.visible { display: block; }
+        .cr-status.parsing  { background: #fff3cd; color: #856404; }
+        .cr-status.parsed   { background: #d1ecf1; color: #0c5460; }
+        .cr-status.error    { background: #f8d7da; color: #721c24; }
+
+        .stepper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            margin: 16px -24px 0;
+            padding: 4px 8px 14px;
+            background: var(--qr-navy);
+        }
+        .stepper-item {
+            flex: 1 1 auto;
+            min-width: 0;
+            text-align: center;
+            padding: 12px 4px 14px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.5);
+            border-bottom: 3px solid transparent;
+            cursor: default;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        @media (min-width: 640px) {
+            .stepper-item { font-size: 10px; padding-left: 6px; padding-right: 6px; }
+        }
+        .stepper-item.active {
+            color: #fff;
+            border-bottom-color: var(--qr-orange);
+        }
+        .stepper-item.done {
+            color: rgba(255, 255, 255, 0.78);
+        }
+
+        .wizard-progress {
+            height: 6px;
+            width: 100%;
+            background: #e5e0d8;
+            flex-shrink: 0;
+        }
+        .wizard-progress-fill {
+            height: 100%;
+            width: 16.666%;
+            background: var(--qr-orange);
+            transition: width 0.28s ease;
+        }
+
+        .form-body { padding: 28px 28px 8px; min-height: 280px; }
+        .wizard-step { display: none; }
+        .wizard-step.active { display: block; }
+
+        .form-section { margin-bottom: 28px; }
+        .form-section:last-child { margin-bottom: 0; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .section-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .section-icon-wrap.person { background: #e0edff; }
+        .section-icon-wrap.house { background: #d9f5e5; }
+        .section-icon-wrap.goal { background: #fff0e0; }
+        .section-icon-wrap.time { background: #ede9fe; }
+        .section-icon-wrap.money { background: #fef3c7; }
+        .section-icon-wrap.profile { background: #fce7f3; }
+        .section-icon-wrap.priority { background: #ffedd5; }
+        .section-icon-wrap.risk { background: #fee2e2; }
+        .section-header h3 {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--qr-navy);
+        }
+
+        .row-2-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 640px) {
+            .row-2-1 { grid-template-columns: 1fr; }
+        }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--qr-line);
+            border-radius: var(--qr-radius);
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--qr-text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--qr-navy-soft);
+            box-shadow: 0 0 0 3px rgba(26, 47, 74, 0.12);
+        }
+        .form-group textarea { min-height: 96px; resize: vertical; }
+
+        .housing-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 520px) { .housing-cards { grid-template-columns: 1fr; } }
+        .housing-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px;
+            border: 1px solid var(--qr-line);
+            border-radius: var(--qr-radius);
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--qr-text);
+        }
+        .housing-card:hover { border-color: #cbd5e1; background: #fafafa; }
+        .housing-card:has(input:checked) {
+            border-color: var(--qr-navy);
+            background: #f8fafc;
+            box-shadow: 0 0 0 1px var(--qr-navy);
+        }
+        .housing-card input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--qr-orange);
+            flex-shrink: 0;
+        }
+
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 14px; }
+        .checkbox-item input[type="checkbox"],
+        .checkbox-item input[type="radio"] { width: auto; accent-color: var(--qr-orange); }
+        .required { color: var(--qr-orange); }
+
+        .auto-filled { background: #ecfdf5 !important; border-color: #10b981 !important; }
+        .auto-filled-label::after { content: " (LendingPad)"; color: #059669; font-size: 11px; font-weight: 600; }
+        .cr-filled { background: #ecfeff !important; border-color: #06b6d4 !important; }
+        .cr-filled-label::after { content: " (Credit Report)"; color: #0891b2; font-size: 11px; font-weight: 600; }
+
+        .file-upload {
+            border: 2px dashed var(--qr-line);
+            border-radius: var(--qr-radius);
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .file-upload:hover { border-color: var(--qr-navy-soft); background: #f8fafc; }
+        .file-upload.has-file { border-color: #10b981; background: #ecfdf5; }
+        .file-upload.parsing { border-color: #f59e0b; background: #fffbeb; }
+
+        .wizard-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding: 20px 28px 24px;
+            border-top: 1px solid var(--qr-line);
+            background: #fafafa;
+        }
+        .step-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--qr-muted);
+        }
+        .wizard-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-left: auto; }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--qr-line);
+            color: var(--qr-text);
+            padding: 12px 20px;
+            border-radius: var(--qr-radius);
+            font-weight: 600;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .btn-ghost:hover { background: #f3f4f6; }
+        .btn-continue {
+            background: var(--qr-navy);
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--qr-radius);
+            font-weight: 700;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-continue:hover { background: var(--qr-navy-mid); }
+        .btn-primary {
+            background: var(--qr-navy);
+            color: #fff;
+            border: none;
+            padding: 12px 22px;
+            border-radius: var(--qr-radius);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: var(--qr-navy-mid); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary {
+            background: #fff;
+            color: var(--qr-navy);
+            border: 2px solid var(--qr-navy);
+            padding: 12px 20px;
+            border-radius: var(--qr-radius);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .btn-secondary:hover { background: #f1f5f9; }
+        .btn-secondary:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-submit {
+            background: #15803d;
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--qr-radius);
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-submit:hover { background: #166534; }
+        .btn-submit:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+        .btn-outline {
+            background: transparent;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .btn-outline:hover { background: #fef2f2; }
+
+        .submit-section {
+            display: none;
+            width: 100%;
+            flex-basis: 100%;
+            padding-top: 8px;
+            border-top: 1px dashed var(--qr-line);
+            margin-top: 4px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .submit-section.visible { display: flex; }
+
+        .preview-panel {
+            display: none;
+            margin: 0 28px 20px;
+            padding: 20px;
+            border-radius: var(--qr-radius);
+            border: 1px solid var(--qr-navy-soft);
+            background: #f0f4fa;
+        }
+        .preview-panel.active { display: block; }
+        .preview-panel h4 { margin: 0 0 10px; color: var(--qr-navy); font-size: 16px; }
+        .preview-panel .preview-hint { font-size: 13px; color: #495057; margin-bottom: 12px; }
+
+        .loading { display: none; text-align: center; padding: 20px; }
+        .loading.active { display: block; }
+        .spinner {
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid var(--qr-navy);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .success-message, .error-message {
+            display: none;
+            padding: 22px;
+            border-radius: var(--qr-radius);
+            margin: 0 28px 20px;
+            text-align: center;
+        }
+        .success-message { background: #ecfdf5; color: #14532d; border: 1px solid #bbf7d0; }
+        .error-message { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .success-message.active, .error-message.active { display: block; }
+        .success-message .analysis-heading {
+            margin: 18px 0 8px;
+            font-size: 15px;
+            text-align: left;
+            color: #14532d;
+        }
+        .analysis-output {
+            text-align: left;
+            background: #fff;
+            color: #212529;
+            border: 1px solid var(--qr-line);
+            border-radius: var(--qr-radius);
+            padding: 16px;
+            max-height: min(70vh, 720px);
+            overflow: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .toast-stack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            left: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast-stack .toast {
+            pointer-events: auto;
+        }
+        .toast {
+            max-width: min(420px, 100%);
+            padding: 14px 18px;
+            border-radius: var(--qr-radius);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            box-shadow: 0 10px 30px rgba(19, 34, 56, 0.18);
+            animation: toastIn 0.22s ease;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .toast.info { background: var(--qr-navy); color: #fff; }
+        .toast.success { background: #15803d; color: #fff; }
+        .toast.error { background: #b91c1c; color: #fff; }
+
+        .auth-gate {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(180deg, var(--qr-bg-top) 0%, var(--qr-bg-bot) 100%);
+        }
+        .auth-gate[hidden] { display: none !important; }
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: var(--qr-radius-card);
+            padding: 32px 28px;
+            box-shadow: 0 24px 48px rgba(19, 34, 56, 0.12);
+        }
+        .auth-card h2 {
+            font-size: 18px;
+            color: var(--qr-navy);
+            margin-bottom: 8px;
+        }
+        .auth-card p.sub {
+            font-size: 13px;
+            color: var(--qr-muted);
+            margin-bottom: 22px;
+        }
+        .auth-error {
+            color: #b91c1c;
+            font-size: 13px;
+            margin-top: 10px;
+            min-height: 1.2em;
+        }
+        .auth-session-hint {
+            font-size: 12px;
+            color: var(--qr-muted);
+            line-height: 1.45;
+            margin: 12px 0 0;
+        }
+        .auth-session-hint code {
+            font-size: 11px;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        #mainApp[hidden] { display: none !important; }
+        .header-signout {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 14px 18px;
+        }
+        .header-auth-hint {
+            width: 100%;
+            flex-basis: 100%;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--qr-muted);
+            margin: 0;
+        }
+        .header-auth-hint[hidden] { display: none !important; }
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--qr-navy-soft);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            font-family: inherit;
+        }
+        .btn-link:hover { color: var(--qr-orange); }
+        a.btn-link {
+            color: var(--qr-navy-soft);
+            display: inline;
+        }
+        a.btn-link:hover { color: var(--qr-orange); }
+
+        .app-bootstrap {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, var(--qr-bg-top) 0%, var(--qr-bg-bot) 100%);
+            font-weight: 600;
+            color: var(--qr-muted);
+        }
+        .app-bootstrap[hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+<div id="toastStack" class="toast-stack" aria-live="polite"></div>
+<div id="appBootstrap" class="app-bootstrap">Loading…</div>
+
+<div id="authGate" class="auth-gate" hidden>
+    <div class="auth-card">
+        <h2>Sign in</h2>
+        <p class="sub">QuestRock Credit Intake — use your QuestRock account.</p>
+        <p class="auth-session-hint">If the form opens without this screen, your browser still has a session. Use <strong>Sign out</strong> in the header, or add <code>?logout=1</code> to the page URL once.</p>
+        <div class="form-group">
+            <label for="authEmail">Email</label>
+            <input type="email" id="authEmail" autocomplete="username" value="arashid@questrock.com">
+        </div>
+        <div class="form-group">
+            <label for="authPassword">Password</label>
+            <input type="password" id="authPassword" autocomplete="current-password" placeholder="Password">
+        </div>
+        <button type="button" class="btn-continue" style="width:100%; margin-top:8px;" id="authSignInBtn" onclick="signInWithSupabase()">Sign in</button>
+        <p class="auth-error" id="authError" role="alert"></p>
+    </div>
+</div>
+
+<div id="mainApp" hidden>
+<div class="page">
+    <header class="brand-bar">
+        <div class="brand-lockup">
+            <img id="brandLogoImg" class="brand-logo" src="public/logo-questrock-112023.png" alt="" width="220" height="56" decoding="async" fetchpriority="high" aria-hidden="true">
+            <script>
+            (function () {
+                var img = document.getElementById('brandLogoImg');
+                if (!img) return;
+                var list = [
+                    'public/logo-questrock-112023.png',
+                    '/public/logo-questrock-112023.png',
+                    '/logo-questrock-112023.png',
+                    'logo-questrock-112023.png',
+                    'public/logo-questrock.png',
+                    '/public/logo-questrock.png',
+                    '/logo-questrock.png'
+                ];
+                var i = 0;
+                img.addEventListener('error', function tryNext() {
+                    i += 1;
+                    if (i < list.length) {
+                        img.src = list[i];
+                    } else {
+                        img.style.display = 'none';
+                        img.removeEventListener('error', tryNext);
+                    }
+                });
+            })();
+            </script>
+        </div>
+        <h1 class="brand-title">Credit Repair Bot</h1>
+        <p class="brand-tagline">Credit Optimization Intake · LendingPad Auto-Fill + AI Parsing · v4</p>
+        <div class="header-signout">
+            <p class="header-auth-hint" id="headerAuthHint" hidden></p>
+            <a class="btn-link" href="/saved-jobs" id="savedJobsBtn" hidden>Saved jobs</a>
+            <button type="button" class="btn-link" id="signOutBtn" hidden onclick="signOutSupabase()">Sign out</button>
+        </div>
+    </header>
+
+    <div class="shell">
+        <div class="search-panel">
+            <p class="search-label"><span class="dot" aria-hidden="true"></span> SEARCH LENDINGPAD LOAN</p>
+            <div class="search-grid">
+                <select id="lendingPadUserId" class="input-dark" aria-label="Select loan officer">
+                    <option value="">Select loan officer…</option>
+                </select>
+                <input type="text" id="searchInput" class="input-dark" placeholder="Borrower last name or loan number" aria-label="Borrower last name or loan number"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();searchLoans();}">
+                <button type="button" class="btn-search" onclick="searchLoans()" id="searchBtn">Search</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+            <div class="selected-loan" id="selectedLoan">
+                <span class="info" id="selectedLoanInfo"></span>
+                <button type="button" class="btn-outline" onclick="clearSelectedLoan()">Clear</button>
+            </div>
+            <div class="cr-status" id="crStatus"></div>
+            <p class="search-hint">Pick the LO whose pipeline you are searching, then enter a borrower name or loan number.</p>
+
+            <nav class="stepper" id="stepper" aria-label="Form steps">
+                <div class="stepper-item active" data-step="1">BORROWER</div>
+                <div class="stepper-item" data-step="2">LOAN &amp; GOAL</div>
+                <div class="stepper-item" data-step="3">TIMELINE</div>
+                <div class="stepper-item" data-step="4">BUDGET</div>
+                <div class="stepper-item" data-step="5">PROFILE</div>
+                <div class="stepper-item" data-step="6">DEROG &amp; AU</div>
+            </nav>
+        </div>
+
+        <div class="wizard-progress" id="wizardProgress" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1" aria-label="Intake steps completed">
+            <div class="wizard-progress-fill" id="wizardProgressFill"></div>
+        </div>
+
+        <form id="intakeForm" novalidate>
+        <div class="form-body">
+
+            <div class="wizard-step active" data-step="1">
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap person" aria-hidden="true">&#128100;</span>
+                    <h3>Borrower information</h3>
+                </div>
+                <div class="row-2-1">
+                    <div class="form-group">
+                        <label for="fullName">Full name <span class="required">*</span></label>
+                        <input type="text" id="fullName" name="fullName" required placeholder="First and last name">
+                    </div>
+                    <div class="form-group">
+                        <label for="applicationType">Joint or single <span class="required">*</span></label>
+                        <select id="applicationType" name="applicationType" required>
+                            <option value="">Select…</option>
+                            <option value="Single">Single</option>
+                            <option value="Joint">Joint</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="loanPurpose">Purchase or refinance <span class="required">*</span></label>
+                    <select id="loanPurpose" name="loanPurpose" required>
+                        <option value="">Select…</option>
+                        <option value="Purchase">Purchase</option>
+                        <option value="Refinance">Refinance</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap house" aria-hidden="true">&#127968;</span>
+                    <h3>Current housing status</h3>
+                </div>
+                <div class="form-group">
+                    <label id="housingLabel">Housing status <span class="required">*</span></label>
+                    <div class="housing-cards">
+                        <label class="housing-card"><input type="radio" name="housingStatus" value="Renting" required onchange="toggleRentFields()"> Renting</label>
+                        <label class="housing-card"><input type="radio" name="housingStatus" value="Own home" onchange="toggleRentFields()"> Own a home</label>
+                        <label class="housing-card"><input type="radio" name="housingStatus" value="Living with family" onchange="toggleRentFields()"> Living with family</label>
+                        <label class="housing-card"><input type="radio" name="housingStatus" value="Other" onchange="toggleRentFields()"> Other</label>
+                    </div>
+                </div>
+                <div id="rentFields" style="display:none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="monthlyRent">Monthly Rent ($)</label>
+                            <input type="number" id="monthlyRent" name="monthlyRent" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>On-time &amp; traceable payments</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item"><input type="radio" name="rentPayments" value="Yes"> Yes</label>
+                                <label class="checkbox-item"><input type="radio" name="rentPayments" value="No"> No</label>
+                                <label class="checkbox-item"><input type="radio" name="rentPayments" value="UNKNOWN"> UNKNOWN</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="wizard-step" data-step="2">
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap goal" aria-hidden="true">&#127919;</span>
+                    <h3>Loan &amp; goal</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="loanType">Loan Type <span class="required">*</span></label>
+                        <select id="loanType" name="loanType" required>
+                            <option value="">Select...</option>
+                            <option value="FHA">FHA</option>
+                            <option value="Conventional">Conventional</option>
+                            <option value="DSCR">DSCR</option>
+                            <option value="HELOC">HELOC</option>
+                            <option value="VA">VA</option>
+                            <option value="USDA">USDA</option>
+                            <option value="Non-QM">Non-QM</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentScore">Current Mid Score</label>
+                        <input type="number" id="currentScore" name="currentScore" placeholder="e.g. 620">
+                    </div>
+                    <div class="form-group">
+                        <label for="targetScore">Target Score Needed <span class="required">*</span></label>
+                        <input type="number" id="targetScore" name="targetScore" required placeholder="e.g. 640">
+                    </div>
+                    <div class="form-group">
+                        <label for="idealScore">Ideal Score Goal (pricing)</label>
+                        <input type="number" id="idealScore" name="idealScore" placeholder="e.g. 680">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Credit Repair Goal <span class="required">*</span></label>
+                    <div class="checkbox-group" id="repairGoalGroup">
+                        <label class="checkbox-item"><input type="checkbox" name="repairGoal[]" value="Approval"> Approval</label>
+                        <label class="checkbox-item"><input type="checkbox" name="repairGoal[]" value="Better Pricing"> Better Pricing</label>
+                        <label class="checkbox-item"><input type="checkbox" name="repairGoal[]" value="Max Loan Proceeds"> Max Loan Proceeds</label>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="wizard-step" data-step="3">
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap time" aria-hidden="true">&#9201;</span>
+                    <h3>Timeline</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Target Close Timeline <span class="required">*</span></label>
+                        <select name="closeTimeline" required>
+                            <option value="">Select...</option>
+                            <option value="<14 days">&lt;14 days</option>
+                            <option value="14-30 days">14-30 days</option>
+                            <option value="30-45 days">30-45 days</option>
+                            <option value="Flexible">Flexible</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Desired Timeframe to Improve Score <span class="required">*</span></label>
+                        <select name="scoreTimeline" required>
+                            <option value="">Select...</option>
+                            <option value="Immediate (<7 days)">Immediate (&lt;7 days)</option>
+                            <option value="14 days">14 days</option>
+                            <option value="30 days">30 days</option>
+                            <option value="Flexible">Flexible</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="wizard-step" data-step="4">
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap money" aria-hidden="true">&#128176;</span>
+                    <h3>Budget</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="totalBudget">Total Available Budget ($) <span class="required">*</span></label>
+                        <input type="number" id="totalBudget" name="totalBudget" required placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="immediateCash">Immediate Cash (next 48 hrs) ($) <span class="required">*</span></label>
+                        <input type="number" id="immediateCash" name="immediateCash" required placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxWilling">Max Willing to Spend ($) <span class="required">*</span></label>
+                        <input type="number" id="maxWilling" name="maxWilling" required placeholder="0">
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="wizard-step" data-step="5">
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap profile" aria-hidden="true">&#9889;</span>
+                    <h3>Borrower execution profile</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Take action immediately? <span class="required">*</span></label>
+                        <select name="immediateAction" required>
+                            <option value="">Select...</option>
+                            <option value="Yes (same day)">Yes (same day)</option>
+                            <option value="Within a few days">Within a few days</option>
+                            <option value="Hesitant">Hesitant</option>
+                            <option value="Unknown">Unknown</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Comfortable calling creditors? <span class="required">*</span></label>
+                        <select name="comfortableCalling" required>
+                            <option value="">Select...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Needs step-by-step guidance? <span class="required">*</span></label>
+                        <select name="needsGuidance" required>
+                            <option value="">Select...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap house" aria-hidden="true">&#127968;</span>
+                    <h3>Rent / alt credit</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Is borrower renting? <span class="required">*</span></label>
+                        <select name="isRenting" id="isRenting" required><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                    </div>
+                    <div class="form-group"><label for="monthlyRentAlt">Monthly rent ($)</label><input type="number" id="monthlyRentAlt" name="monthlyRentAlt" placeholder="0"></div>
+                    <div class="form-group">
+                        <label>On-time payment history <span class="required">*</span></label>
+                        <select name="onTimePayments" required><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Utilities in borrower name <span class="required">*</span></label>
+                        <select name="utilitiesInName" required><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap notes" aria-hidden="true">&#129504;</span>
+                    <h3>LO notes</h3>
+                </div>
+                <div class="form-group">
+                    <label for="biggestConcern">Biggest concern on this deal <span class="required">*</span></label>
+                    <textarea id="biggestConcern" name="biggestConcern" required placeholder="Main challenge…"></textarea>
+                </div>
+                <div class="form-group"><label for="alreadyTried">What has borrower already tried</label><textarea id="alreadyTried" name="alreadyTried" placeholder="Previous attempts or 'Nothing'"></textarea></div>
+                <div class="form-group"><label for="knownIssues">Known issues not obvious on report</label><textarea id="knownIssues" name="knownIssues" placeholder="Details or 'None'"></textarea></div>
+                <div class="form-group">
+                    <label>Borrower personality <span class="required">*</span></label>
+                    <select name="personality" required><option value="">Select…</option><option value="Highly motivated">Highly motivated</option><option value="Needs pushing">Needs pushing</option><option value="Uncertain">Uncertain</option></select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap priority" aria-hidden="true">&#128680;</span>
+                    <h3>Deal priority</h3>
+                </div>
+                <div class="form-group">
+                    <label>Urgency <span class="required">*</span></label>
+                    <select name="urgency" required><option value="">Select…</option><option value="High (active contract)">High (active contract)</option><option value="Medium">Medium</option><option value="Low">Low</option></select>
+                </div>
+            </div>
+            </div>
+
+            <div class="wizard-step" data-step="6">
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap risk" aria-hidden="true">&#9888;&#65039;</span>
+                    <h3>Derogatory willingness</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Willing to settle/pay collections? <span class="required">*</span></label>
+                        <select name="willingCollections" required>
+                            <option value="">Select...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Depends on amount">Depends on amount</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Willing to resolve charge-offs? <span class="required">*</span></label>
+                        <select name="willingChargeoffs" required>
+                            <option value="">Select...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Depends">Depends</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="refusedAccounts">Accounts borrower REFUSES to pay</label>
+                    <textarea id="refusedAccounts" name="refusedAccounts" placeholder="Enter details or 'None'"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon-wrap person" aria-hidden="true">&#128101;</span>
+                    <h3>Authorized user</h3>
+                </div>
+                <div class="form-group">
+                    <label>Access to a strong AU? <span class="required">*</span></label>
+                    <select name="hasAU" id="hasAU" onchange="toggleAUFields()" required>
+                        <option value="">Select...</option>
+                        <option value="Yes (family/friend)">Yes (family/friend)</option>
+                        <option value="No">No</option>
+                        <option value="Unsure">Unsure</option>
+                    </select>
+                </div>
+                <div id="auFields" style="display:none;">
+                    <div class="form-grid">
+                        <div class="form-group"><label for="auAge">AU Account Age (years)</label><input type="number" id="auAge" name="auAge" placeholder="e.g. 10"></div>
+                        <div class="form-group"><label for="auLimit">AU Credit Limit ($)</label><input type="number" id="auLimit" name="auLimit" placeholder="e.g. 10000"></div>
+                        <div class="form-group"><label for="auUtilization">AU Utilization (%)</label><input type="number" id="auUtilization" name="auUtilization" placeholder="e.g. 10"></div>
+                        <div class="form-group"><label>Any late history?</label><select name="auLateHistory"><option value="">Select...</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section" id="creditUploadSection">
+                <div class="section-header">
+                    <span class="section-icon-wrap time" aria-hidden="true">&#128206;</span>
+                    <h3>Credit report</h3>
+                </div>
+                <div id="crAutoMessage" style="display:none; margin-bottom:16px;">
+                    <span style="background:#d1ecf1; color:#0c5460; padding:8px 14px; border-radius:6px; font-size:13px; display:inline-block;">
+                        Credit report was auto-parsed from LendingPad. Upload a new PDF below to override.
+                    </span>
+                </div>
+                <div class="form-group">
+                    <label>Upload FULL CREDIT REPORT (PDF)</label>
+                    <div class="file-upload" id="fileUploadArea" onclick="document.getElementById('creditReport').click()">
+                        <p id="fileUploadText">Click to upload or drag and drop</p>
+                        <p style="font-size:12px; color:#6c757d; margin-top:10px;">Accepted: PDF</p>
+                    </div>
+                    <input type="file" id="creditReport" name="creditReport" accept=".pdf" style="display:none;" onchange="handleFileUpload()">
+                </div>
+            </div>
+            </div>
+
+        </div>
+
+        <footer class="wizard-footer">
+            <span class="step-label" id="stepLabel">Step 1 of 6</span>
+            <div class="wizard-actions">
+                <button type="button" class="btn-ghost" id="btnBack" onclick="wizardPrev()" hidden>Back</button>
+                <button type="button" class="btn-continue" id="btnContinue" onclick="wizardNext()">Continue →</button>
+            </div>
+            <div class="submit-section" id="finalActions">
+                <button type="button" class="btn-primary" onclick="resetForm()">Reset</button>
+                <button type="button" class="btn-secondary" id="previewBtn" onclick="previewAnalysis()">Preview analysis</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Submit to QuestRock</button>
+            </div>
+        </footer>
+    </form>
+
+    <div class="preview-panel" id="previewPanel">
+        <h4>Preview analysis</h4>
+        <p class="preview-hint">Same AI run as submit. When this looks right, use <strong>Submit to QuestRock</strong> to save a final run to your account (when signed in).</p>
+        <pre class="analysis-output" id="previewOutput" role="region" aria-label="Preview analysis"></pre>
+    </div>
+
+    <!-- States -->
+    <div class="loading" id="loadingState"><div class="spinner"></div><p id="loadingText">Processing submission...</p></div>
+    <div class="success-message" id="successMessage">
+        <h3>Submission successful</h3>
+        <p id="successDetail">Your QuestRock analysis is below.</p>
+        <h4 class="analysis-heading">AI analysis output</h4>
+        <pre class="analysis-output" id="analysisOutput" role="region" aria-label="AI analysis"></pre>
+    </div>
+    <div class="error-message" id="errorMessage"><h3>Submission Failed</h3><p id="errorText"></p></div>
+    </div>
+</div>
+</div>
+
+<script>
+// ============================== state ==============================
+let selectedLoanData = null;   // from searchLoans
+let parsedCreditReport = null; // from AI parse
+
+const API = '/api';
+const WIZARD_TOTAL = 6;
+let currentWizardStep = 1;
+
+let supabaseClient = null;
+let supabaseConfigured = false;
+
+function toast(message, variant) {
+    const stack = document.getElementById('toastStack');
+    if (!stack || !message) return;
+    const el = document.createElement('div');
+    el.className = 'toast ' + (variant === 'success' ? 'success' : variant === 'info' ? 'info' : 'error');
+    el.textContent = message;
+    stack.appendChild(el);
+    const t = window.setTimeout(() => {
+        el.remove();
+    }, variant === 'error' ? 9000 : 5500);
+    el.addEventListener('click', () => {
+        window.clearTimeout(t);
+        el.remove();
+    });
+}
+
+function hideAppBootstrap() {
+    const b = document.getElementById('appBootstrap');
+    if (b) b.setAttribute('hidden', '');
+}
+
+function setMainVisible(show) {
+    const main = document.getElementById('mainApp');
+    const gate = document.getElementById('authGate');
+    const so = document.getElementById('signOutBtn');
+    const sj = document.getElementById('savedJobsBtn');
+    if (main) main.hidden = !show;
+    if (gate) gate.hidden = show;
+    const authReady = Boolean(supabaseConfigured && supabaseClient);
+    if (so) so.hidden = !show || !authReady;
+    if (sj) sj.hidden = !show || !supabaseConfigured;
+}
+
+async function loadSupabaseModule() {
+    const mod = await import('https://esm.sh/@supabase/supabase-js@2.49.8');
+    return mod.createClient;
+}
+
+async function initSupabaseFromServer() {
+    try {
+        const cfg = await apiCall('getClientConfig', {});
+        supabaseConfigured = Boolean(cfg.supabaseConfigured && cfg.supabaseUrl && cfg.supabaseAnonKey);
+        if (!supabaseConfigured) {
+            supabaseClient = null;
+            return;
+        }
+        const createClient = await loadSupabaseModule();
+        supabaseClient = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+            applyAuthSession(session);
+        });
+    } catch (e) {
+        console.warn('Supabase config unavailable:', e);
+        supabaseConfigured = false;
+        supabaseClient = null;
+    }
+}
+
+function applyAuthSession(session) {
+    if (!supabaseConfigured) {
+        setMainVisible(true);
+        updateHeaderAuthHint(null);
+        hideAppBootstrap();
+        return;
+    }
+    if (session && session.user) {
+        setMainVisible(true);
+        updateHeaderAuthHint(session);
+    } else {
+        setMainVisible(false);
+        updateHeaderAuthHint(null);
+    }
+    hideAppBootstrap();
+}
+
+function updateHeaderAuthHint(session) {
+    const hint = document.getElementById('headerAuthHint');
+    if (!hint) return;
+    if (!supabaseConfigured) {
+        hint.textContent = '';
+        hint.hidden = true;
+        return;
+    }
+    const email = session && session.user && session.user.email ? String(session.user.email) : '';
+    if (email) {
+        hint.textContent = 'Signed in as ' + email;
+        hint.hidden = false;
+    } else {
+        hint.textContent = '';
+        hint.hidden = true;
+    }
+}
+
+async function refreshAuthSession() {
+    if (!supabaseClient) {
+        applyAuthSession(null);
+        return;
+    }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    applyAuthSession(session);
+}
+
+async function signInWithSupabase() {
+    const err = document.getElementById('authError');
+    if (err) err.textContent = '';
+    if (!supabaseClient) {
+        toast('Sign-in is not available (Supabase not configured on server).', 'error');
+        return;
+    }
+    const email = (document.getElementById('authEmail') || {}).value?.trim() || '';
+    const password = (document.getElementById('authPassword') || {}).value || '';
+    const btn = document.getElementById('authSignInBtn');
+    if (btn) btn.disabled = true;
+    try {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        toast('Signed in.', 'success');
+    } catch (e) {
+        const msg = e?.message || String(e);
+        if (err) err.textContent = msg;
+        toast(msg, 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function signOutSupabase() {
+    if (!supabaseClient) {
+        toast('Supabase is not connected (check server .env and restart npm run dev).', 'info');
+        return;
+    }
+    try {
+        const { error } = await supabaseClient.auth.signOut({ scope: 'local' });
+        if (error) throw error;
+        toast('Signed out.', 'info');
+    } catch (e) {
+        const msg = e?.message || String(e);
+        toast(msg + ' — clearing local session anyway.', 'error');
+    } finally {
+        applyAuthSession(null);
+        const pw = document.getElementById('authPassword');
+        if (pw) pw.value = '';
+    }
+}
+
+function sanitizeFormForStorage(payload) {
+    if (!payload || typeof payload !== 'object') return {};
+    const p = JSON.parse(JSON.stringify(payload));
+    if (p.creditReport && typeof p.creditReport === 'object') {
+        const cr = p.creditReport;
+        p.creditReport = {
+            scores: cr.scores || null,
+            housingStatus: cr.housingStatus || null,
+            summaryOnly: true,
+            tradelineCount: Array.isArray(cr.tradelines) ? cr.tradelines.length : undefined
+        };
+    }
+    return p;
+}
+
+async function saveJob(kind, payload, aiAnalysis) {
+    if (!supabaseClient || !supabaseConfigured) return;
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    const form_data = sanitizeFormForStorage(payload);
+    const borrower_name =
+        typeof payload.fullName === 'string' && payload.fullName.trim()
+            ? payload.fullName.trim()
+            : null;
+    const analysis = typeof aiAnalysis === 'string' ? aiAnalysis : null;
+    const jobRow = {
+        user_id: user.id,
+        kind,
+        borrower_name,
+        form_data,
+        ai_analysis: analysis
+    };
+    const submissionRow = {
+        user_id: user.id,
+        kind,
+        form_data,
+        ai_analysis: analysis
+    };
+    const [rJob, rSub] = await Promise.all([
+        supabaseClient.from('jobs').insert(jobRow),
+        supabaseClient.from('intake_submissions').insert(submissionRow)
+    ]);
+    if (rJob.error) {
+        console.error('Supabase jobs insert:', rJob.error);
+        toast('Could not save job: ' + rJob.error.message, 'error');
+        return;
+    }
+    if (rSub.error) {
+        console.error('Supabase intake_submissions insert:', rSub.error);
+        toast('Saved to jobs; intake_submissions failed: ' + rSub.error.message, 'error');
+    } else {
+        toast(
+            kind === 'preview' ? 'Preview saved — open Saved jobs to review.' : 'Submit saved — open Saved jobs to review.',
+            'success'
+        );
+    }
+}
+
+function wizardSync() {
+    document.querySelectorAll('.wizard-step').forEach((el) => {
+        const s = parseInt(el.dataset.step, 10);
+        el.classList.toggle('active', s === currentWizardStep);
+    });
+    document.querySelectorAll('#stepper .stepper-item').forEach((el) => {
+        const s = parseInt(el.dataset.step, 10);
+        el.classList.remove('active', 'done');
+        if (s < currentWizardStep) el.classList.add('done');
+        if (s === currentWizardStep) el.classList.add('active');
+    });
+    const label = document.getElementById('stepLabel');
+    if (label) label.textContent = `Step ${currentWizardStep} of ${WIZARD_TOTAL}`;
+    const back = document.getElementById('btnBack');
+    if (back) back.hidden = currentWizardStep === 1;
+    const cont = document.getElementById('btnContinue');
+    const final = document.getElementById('finalActions');
+    const fill = document.getElementById('wizardProgressFill');
+    const progressEl = document.getElementById('wizardProgress');
+    const pct = (currentWizardStep / WIZARD_TOTAL) * 100;
+    if (fill) fill.style.width = pct + '%';
+    if (progressEl) {
+        progressEl.setAttribute('aria-valuenow', String(currentWizardStep));
+        progressEl.setAttribute('aria-valuetext', `Step ${currentWizardStep} of ${WIZARD_TOTAL}`);
+    }
+    if (currentWizardStep === WIZARD_TOTAL) {
+        if (cont) cont.style.display = 'none';
+        if (final) final.classList.add('visible');
+    } else {
+        if (cont) cont.style.display = '';
+        if (final) final.classList.remove('visible');
+    }
+}
+
+function validateStep(stepNum) {
+    const panel = document.querySelector(`.wizard-step[data-step="${stepNum}"]`);
+    if (!panel) return true;
+    let ok = true;
+    const clearBorder = (el) => {
+        if (el.style) el.style.borderColor = '';
+    };
+    panel.querySelectorAll('[required]').forEach((f) => {
+        if (f.type === 'checkbox' || f.type === 'radio') return;
+        const v = f.value != null ? String(f.value).trim() : '';
+        if (!v) {
+            ok = false;
+            f.style.borderColor = '#f26722';
+        } else {
+            clearBorder(f);
+        }
+    });
+    const radioRequiredNames = new Set();
+    panel.querySelectorAll('input[type="radio"][required]').forEach((r) => radioRequiredNames.add(r.name));
+    radioRequiredNames.forEach((name) => {
+        const checked = panel.querySelector(`input[name="${CSS.escape(name)}"]:checked`);
+        if (!checked) ok = false;
+    });
+    if (stepNum === 2) {
+        const anyGoal = panel.querySelector('input[name="repairGoal[]"]:checked');
+        if (!anyGoal) ok = false;
+    }
+    return ok;
+}
+
+function validateAllSteps() {
+    for (let s = 1; s <= WIZARD_TOTAL; s++) {
+        if (!validateStep(s)) {
+            currentWizardStep = s;
+            wizardSync();
+            toast('Please fill in all required fields. Check step ' + s + '.', 'error');
+            return false;
+        }
+    }
+    return true;
+}
+
+function wizardNext() {
+    if (!validateStep(currentWizardStep)) {
+        toast('Please complete the required fields on this step before continuing.', 'error');
+        return;
+    }
+    if (currentWizardStep < WIZARD_TOTAL) {
+        currentWizardStep += 1;
+        wizardSync();
+        const body = document.querySelector('.form-body');
+        if (body) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function wizardPrev() {
+    if (currentWizardStep > 1) {
+        currentWizardStep -= 1;
+        wizardSync();
+        const body = document.querySelector('.form-body');
+        if (body) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ============================== helpers ==============================
+
+async function apiCall(action, data) {
+    const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, data })
+    });
+    const text = await res.text();
+    let json;
+    try {
+        json = JSON.parse(text);
+    } catch {
+        throw new Error(
+            res.ok
+                ? 'Invalid JSON from server'
+                : `Server error ${res.status}: ${text.slice(0, 200)}`
+        );
+    }
+    if (!json.success) throw new Error(json.error || 'API call failed');
+    return json;
+}
+
+function populateLoSelect(sel, users) {
+    sel.innerHTML = '';
+    const ph = document.createElement('option');
+    ph.value = '';
+        ph.textContent = users.length ? 'Select loan officer…' : 'No users configured (add config/lendingpad-users.json)';
+    sel.appendChild(ph);
+    users.forEach((u) => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.name;
+        sel.appendChild(opt);
+    });
+}
+
+function usersFromLendingPadConfigJson(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw
+        .map((row) => ({
+            id: (row.id || row.guid || '').trim(),
+            name: (row.name || row.label || '').trim() || row.id
+        }))
+        .filter((u) => u.id);
+}
+
+async function fetchLendingPadUsersFromStatic() {
+    try {
+        const r = await fetch('/config/lendingpad-users.json', { cache: 'no-store' });
+        if (!r.ok) return [];
+        const raw = await r.json();
+        return usersFromLendingPadConfigJson(raw);
+    } catch {
+        return [];
+    }
+}
+
+async function loadLendingPadUserList() {
+    const sel = document.getElementById('lendingPadUserId');
+    if (window.location.protocol === 'file:') {
+        sel.innerHTML = '';
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Use http:// — run: npm run dev:local (do not open this file directly)';
+        sel.appendChild(opt);
+        return;
+    }
+    const staticUsers = await fetchLendingPadUsersFromStatic();
+    if (staticUsers.length) {
+        populateLoSelect(sel, staticUsers);
+    }
+    let apiError = null;
+    try {
+        const { users } = await apiCall('listLendingPadUsers', {});
+        if (Array.isArray(users) && users.length) {
+            populateLoSelect(sel, users);
+        } else if (Array.isArray(users) && users.length === 0 && !staticUsers.length) {
+            populateLoSelect(sel, []);
+        }
+    } catch (e) {
+        apiError = e;
+        console.warn('listLendingPadUsers failed:', e);
+    }
+    if (!staticUsers.length && apiError) {
+        sel.innerHTML = '';
+        const opt = document.createElement('option');
+        opt.value = '';
+        const msg = apiError.message || String(apiError);
+        opt.textContent = msg.length > 90 ? msg.slice(0, 87) + '…' : msg;
+        opt.title = msg;
+        sel.appendChild(opt);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await initSupabaseFromServer();
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('logout') === '1' || params.get('signout') === '1') {
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.auth.signOut({ scope: 'local' });
+                } catch (_) {
+                    /* ignore */
+                }
+                applyAuthSession(null);
+            }
+            params.delete('logout');
+            params.delete('signout');
+            const q = params.toString();
+            const next = window.location.pathname + (q ? '?' + q : '') + window.location.hash;
+            window.history.replaceState({}, '', next);
+        }
+
+        await refreshAuthSession();
+        if (!supabaseConfigured && !sessionStorage.getItem('qr_sb_skip_hint')) {
+            sessionStorage.setItem('qr_sb_skip_hint', '1');
+            toast('Supabase not configured — sign-in and cloud save are disabled. Add SUPABASE_URL and SUPABASE_ANON_KEY on the server to enable.', 'info');
+        }
+        loadLendingPadUserList();
+        wizardSync();
+        const pw = document.getElementById('authPassword');
+        if (pw) {
+            pw.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') signInWithSupabase();
+            });
+        }
+    } finally {
+        hideAppBootstrap();
+    }
+});
+
+function setField(id, value, source) {
+    const el = document.getElementById(id);
+    if (!el || value === undefined || value === null || value === '') return;
+    el.value = value;
+    const cls = source === 'cr' ? 'cr-filled' : 'auto-filled';
+    const lblCls = source === 'cr' ? 'cr-filled-label' : 'auto-filled-label';
+    el.classList.add(cls);
+    const label = el.previousElementSibling;
+    if (label && label.tagName === 'LABEL') label.classList.add(lblCls);
+}
+
+function setRadio(name, value, source) {
+    if (!value) return;
+    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+        const cls = source === 'cr' ? 'cr-filled' : 'auto-filled';
+        const parent = radio.closest('.form-group');
+        if (parent) {
+            const lbl = parent.querySelector(':scope > label');
+            if (lbl) lbl.classList.add(source === 'cr' ? 'cr-filled-label' : 'auto-filled-label');
+        }
+    }
+}
+
+function setCheckboxes(name, values) {
+    if (!Array.isArray(values)) return;
+    values.forEach(v => {
+        const cb = document.querySelector(`input[name="${name}"][value="${v}"]`);
+        if (cb) cb.checked = true;
+    });
+}
+
+function showCRStatus(cls, text) {
+    const el = document.getElementById('crStatus');
+    el.className = 'cr-status visible ' + cls;
+    el.textContent = text;
+}
+
+// ============================== LendingPad search ==============================
+
+async function searchLoans() {
+    const query = document.getElementById('searchInput').value.trim();
+    const userId = document.getElementById('lendingPadUserId').value.trim();
+    if (!userId) {
+        toast('Select a loan officer (LendingPad user) first.', 'error');
+        return;
+    }
+    if (!query) return;
+    const btn = document.getElementById('searchBtn');
+    btn.disabled = true; btn.textContent = 'Searching...';
+
+    try {
+        const { loans } = await apiCall('searchLoans', { query, userId });
+        const container = document.getElementById('searchResults');
+        if (!loans.length) {
+            container.innerHTML = '<div class="loan-item"><span class="name">No loans found</span></div>';
+        } else {
+            container.innerHTML = loans.map(l => `
+                <div class="loan-item" onclick='selectLoan(${JSON.stringify(l).replace(/'/g,"&#39;")})'>
+                    <div class="name">${l.borrowerName}${l.coBorrowerName ? ' & ' + l.coBorrowerName : ''}</div>
+                    <div class="meta">#${l.loanNumber || '—'} | ${l.loanType} ${l.purpose} | Score: ${l.creditScore || '—'} | ${l.loanStatus}</div>
+                </div>
+            `).join('');
+        }
+        container.classList.add('visible');
+    } catch (e) {
+        toast('Search failed: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false; btn.textContent = 'Search';
+    }
+}
+
+async function selectLoan(loan) {
+    selectedLoanData = loan;
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('selectedLoan').classList.add('visible');
+    document.getElementById('selectedLoanInfo').textContent =
+        `${loan.borrowerName} | #${loan.loanNumber || '—'} | ${loan.loanType} ${loan.purpose} | Score: ${loan.creditScore || '—'}`;
+
+    // Auto-fill from loan data
+    setField('fullName', loan.borrowerName, 'lp');
+    setField('applicationType', loan.applicationType, 'lp');
+    const purposeNorm = (loan.purpose || '').toLowerCase().includes('purchase') ? 'Purchase' : 'Refinance';
+    setField('loanPurpose', purposeNorm, 'lp');
+    setField('loanType', normalizeLoanType(loan.loanType), 'lp');
+    setField('currentScore', loan.creditScore, 'lp');
+
+    // Infer housing from purpose
+    if (purposeNorm === 'Refinance') {
+        setRadio('housingStatus', 'Own home', 'lp');
+    }
+
+    // Now fetch credit report from LendingPad
+    showCRStatus('parsing', 'Searching for credit report in LendingPad...');
+    try {
+        const result = await apiCall('loadLoan', { loanId: loan.id });
+        if (result.creditReport) {
+            parsedCreditReport = result.creditReport;
+            applyCreditReportData(parsedCreditReport);
+            showCRStatus('parsed', 'Credit report auto-parsed from LendingPad!');
+            document.getElementById('crAutoMessage').style.display = 'block';
+        } else {
+            showCRStatus('error', 'No credit report found in LendingPad. Please upload manually below.');
+        }
+    } catch (e) {
+        showCRStatus('error', 'Could not fetch credit report: ' + e.message);
+    }
+}
+
+function normalizeLoanType(raw) {
+    if (!raw) return '';
+    const lower = raw.toLowerCase();
+    if (lower.includes('fha')) return 'FHA';
+    if (lower.includes('va')) return 'VA';
+    if (lower.includes('conventional')) return 'Conventional';
+    if (lower.includes('usda')) return 'USDA';
+    if (lower.includes('heloc')) return 'HELOC';
+    return raw;
+}
+
+function clearSelectedLoan() {
+    selectedLoanData = null;
+    document.getElementById('selectedLoan').classList.remove('visible');
+    document.getElementById('crStatus').classList.remove('visible');
+    document.getElementById('crAutoMessage').style.display = 'none';
+}
+
+// ============================== Credit report auto-fill ==============================
+
+function applyCreditReportData(cr) {
+    if (!cr) return;
+    const scores = cr.scores || {};
+    const mid = [scores.equifax, scores.experian, scores.transunion]
+        .filter(s => typeof s === 'number')
+        .sort((a, b) => a - b);
+    if (mid.length >= 2) setField('currentScore', mid.length === 3 ? mid[1] : mid[0], 'cr');
+    else if (mid.length === 1) setField('currentScore', mid[0], 'cr');
+
+    // Housing status inference
+    if (cr.housingStatus === 'Owns') {
+        setRadio('housingStatus', 'Own home', 'cr');
+        if (document.getElementById('isRenting')) setField('isRenting', 'No', 'cr');
+    } else if (cr.housingStatus === 'Renting') {
+        setRadio('housingStatus', 'Renting', 'cr');
+        if (document.getElementById('isRenting')) setField('isRenting', 'Yes', 'cr');
+    }
+
+    // Suggested repair goals
+    if (Array.isArray(cr.suggestedRepairGoals)) {
+        setCheckboxes('repairGoal[]', cr.suggestedRepairGoals);
+    }
+
+    // AU tradelines from credit report
+    if (cr.authorizedUserTradelines?.length > 0) {
+        const au = cr.authorizedUserTradelines[0];
+        if (document.getElementById('hasAU')) {
+            setField('hasAU', 'Yes (family/friend)', 'cr');
+            toggleAUFields();
+            setField('auAge', au.ageYears, 'cr');
+            setField('auLimit', au.limit, 'cr');
+            setField('auUtilization', au.utilization, 'cr');
+            setField('auLateHistory', au.lateHistory === 'None' ? 'No' : 'Yes', 'cr');
+        }
+    }
+}
+
+// ============================== Manual PDF upload ==============================
+
+async function handleFileUpload() {
+    const fileInput = document.getElementById('creditReport');
+    const uploadArea = document.getElementById('fileUploadArea');
+    const uploadText = document.getElementById('fileUploadText');
+    if (!fileInput.files.length) return;
+
+    const file = fileInput.files[0];
+    uploadText.textContent = `${file.name} — parsing...`;
+    uploadArea.classList.add('parsing');
+    showCRStatus('parsing', 'Parsing credit report with AI...');
+
+    try {
+        const base64 = await fileToBase64(file);
+        const result = await apiCall('parseCreditReport', { pdfBase64: base64 });
+        parsedCreditReport = result.creditReport;
+        applyCreditReportData(parsedCreditReport);
+
+        uploadText.textContent = `${file.name}`;
+        uploadArea.classList.remove('parsing');
+        uploadArea.classList.add('has-file');
+        showCRStatus('parsed', 'Credit report parsed successfully!');
+    } catch (e) {
+        uploadText.textContent = `${file.name} — parse failed`;
+        uploadArea.classList.remove('parsing');
+        showCRStatus('error', 'Parse failed: ' + e.message);
+    }
+}
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// ============================== Preview (no Zapier) ==============================
+
+async function previewAnalysis() {
+    if (!validateForm()) return;
+    const loading = document.getElementById('loadingState');
+    const loadingText = document.getElementById('loadingText');
+    loading.classList.add('active');
+    loadingText.textContent = 'Generating preview (OpenAI only, no Zapier)…';
+    document.getElementById('previewPanel').classList.remove('active');
+    document.getElementById('successMessage').classList.remove('active');
+    document.getElementById('errorMessage').classList.remove('active');
+    document.getElementById('previewBtn').disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+
+    try {
+        const payload = collectFormData();
+        payload.creditReport = parsedCreditReport || null;
+        const loSel = document.getElementById('lendingPadUserId');
+        payload.lendingPadUserId = loSel.value || '';
+        payload.lendingPadUserName = loSel.options[loSel.selectedIndex]?.text || '';
+        if (selectedLoanData) {
+            payload.loanAmount = selectedLoanData.loanAmount;
+            payload.propertyAddress = selectedLoanData.propertyAddress;
+            payload.estimatedClosingDate = selectedLoanData.estimatedClosingDate;
+        }
+        const result = await apiCall('previewIntake', payload);
+        const analysisText =
+            typeof result.aiAnalysis === 'string' && result.aiAnalysis.trim()
+                ? result.aiAnalysis
+                : '(No analysis text returned — check OPENAI_API_KEY.)';
+        document.getElementById('previewOutput').textContent = analysisText;
+        document.getElementById('previewPanel').classList.add('active');
+        document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        void saveJob('preview', payload, analysisText);
+    } catch (e) {
+        document.getElementById('errorMessage').classList.add('active');
+        document.getElementById('errorText').textContent = e.message || 'Preview failed.';
+        toast(e.message || 'Preview failed.', 'error');
+    } finally {
+        loading.classList.remove('active');
+        document.getElementById('previewBtn').disabled = false;
+        document.getElementById('submitBtn').disabled = false;
+    }
+}
+
+// ============================== Form submit ==============================
+
+document.getElementById('intakeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const loading = document.getElementById('loadingState');
+    const loadingText = document.getElementById('loadingText');
+    loading.classList.add('active');
+    loadingText.textContent = 'Generating AI analysis…';
+    document.getElementById('successMessage').classList.remove('active');
+    document.getElementById('errorMessage').classList.remove('active');
+    document.getElementById('analysisOutput').textContent = '';
+    document.getElementById('submitBtn').disabled = true;
+
+    try {
+        const payload = collectFormData();
+        payload.creditReport = parsedCreditReport || null;
+        const loSel = document.getElementById('lendingPadUserId');
+        payload.lendingPadUserId = loSel.value || '';
+        payload.lendingPadUserName = loSel.options[loSel.selectedIndex]?.text || '';
+        if (selectedLoanData) {
+            payload.loanAmount = selectedLoanData.loanAmount;
+            payload.propertyAddress = selectedLoanData.propertyAddress;
+            payload.estimatedClosingDate = selectedLoanData.estimatedClosingDate;
+        }
+
+        const result = await apiCall('submitIntake', payload);
+        loading.classList.remove('active');
+        document.getElementById('successDetail').textContent =
+            'Your QuestRock AI analysis is below. When signed in, each run is stored — open Saved jobs for the full list and formatted report.';
+        const analysisText =
+            typeof result.aiAnalysis === 'string' && result.aiAnalysis.trim()
+                ? result.aiAnalysis
+                : '(No analysis text returned — check OpenAI key and server logs.)';
+        document.getElementById('analysisOutput').textContent = analysisText;
+        document.getElementById('successMessage').classList.add('active');
+        document.getElementById('analysisOutput').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        void saveJob('submit', payload, analysisText);
+    } catch (error) {
+        loading.classList.remove('active');
+        document.getElementById('errorMessage').classList.add('active');
+        document.getElementById('errorText').textContent = error.message || 'Submission failed.';
+        toast(error.message || 'Submission failed.', 'error');
+    } finally {
+        document.getElementById('submitBtn').disabled = false;
+    }
+});
+
+function collectFormData() {
+    const form = document.getElementById('intakeForm');
+    const fd = new FormData(form);
+    const data = {};
+    for (let [key, value] of fd.entries()) {
+        if (key.includes('[]')) {
+            const k = key.replace('[]', '');
+            if (!data[k]) data[k] = [];
+            data[k].push(value);
+        } else {
+            data[key] = value || 'UNKNOWN';
+        }
+    }
+    return data;
+}
+
+// ============================== Validation ==============================
+
+function validateForm() {
+    return validateAllSteps();
+}
+
+// ============================== UI toggles ==============================
+
+function toggleRentFields() {
+    const isRenting = document.querySelector('input[name="housingStatus"][value="Renting"]')?.checked;
+    document.getElementById('rentFields').style.display = isRenting ? 'block' : 'none';
+}
+
+function toggleAUFields() {
+    document.getElementById('auFields').style.display =
+        document.getElementById('hasAU').value === 'Yes (family/friend)' ? 'block' : 'none';
+}
+
+function resetForm() {
+    document.getElementById('intakeForm').reset();
+    selectedLoanData = null;
+    parsedCreditReport = null;
+    document.getElementById('selectedLoan').classList.remove('visible');
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('crStatus').classList.remove('visible');
+    document.getElementById('crAutoMessage').style.display = 'none';
+    document.getElementById('fileUploadArea').classList.remove('has-file', 'parsing');
+    document.getElementById('fileUploadText').textContent = 'Click to upload or drag and drop';
+    document.getElementById('successMessage').classList.remove('active');
+    document.getElementById('errorMessage').classList.remove('active');
+    document.getElementById('analysisOutput').textContent = '';
+    document.getElementById('previewPanel').classList.remove('active');
+    document.getElementById('previewOutput').textContent = '';
+    document.querySelectorAll('.auto-filled, .cr-filled').forEach(el => {
+        el.classList.remove('auto-filled', 'cr-filled');
+    });
+    document.querySelectorAll('.auto-filled-label, .cr-filled-label').forEach(el => {
+        el.classList.remove('auto-filled-label', 'cr-filled-label');
+    });
+    currentWizardStep = 1;
+    wizardSync();
+}
+
+// Drag-and-drop support
+const dropZone = document.getElementById('fileUploadArea');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--qr-navy-soft)'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') {
+        const input = document.getElementById('creditReport');
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleFileUpload();
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,3540 @@
+Web API
+Integration Guide
+TABLE OF CONTENT
+Objective
+Key Information
+Import Loan API Request
+Import Standard File API Request
+Import Documents API Request
+Import Loan Notes API Request
+Import Loan Conditions API Request
+Update Loan Conditions API Request
+Delete Loan Conditions API Request
+Get Loan Conditions API Request
+Export Loan Conditions API Request
+Update Loan with Standard File API Request
+Update Loan API Request
+Export Loan API Request
+Export Loan Document API Request
+Export Standard File API Request
+Get Loans API Request
+Get Loan Documents API Request
+Get Loan Document File API Request
+Delete Loan Document API Request
+Revision History
+LendingPad ® Web API Guide Page
+Objective
+In order to exchange data between various systems, LendingPad developed this guide to allow
+
+system-to-system (S2S) data exchanges for mutual clients. Highlighted fields below are the
+
+critical data points needed for bi-directional push/pull with outside 3rd-party systems. They
+
+include loan level data, key status dates and other participants information. Over time the data
+
+set will be expanded with revised versions of this guide.
+
+LendingPad uses basic authentication with whitelist IP’s or domain names for communication.
+
+Key Information
+Test Environment URL: https://testapi.lendingpad.com
+Login Credentials: [to be assigned by LendingPad support team]
+Live Environment URL: https://api.lendingpad.com
+Login Credentials: [to be assigned by LendingPad support team]
+"Import” method allows 3rd-party systems to create/add a new loan record in LendingPad.
+
+"Export” method allows LendingPad to update 3rd-party systems every minute with changes.
+
+LendingPad ® Web API Guide Page 3
+
+Import Loan API Request
+POST /integrations/import/loan
+
+With this request, we will create a loan for you in our system. Please check out input params
+
+for what must be provided and what can be provided. As a response will be returned the ID of
+
+the created loan. The loan will be created per every request. Please save this ID in your system
+
+for future references, such as when you use our Export API below.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+branch Yes, if
+campaign isn’t
+provided
+guid LendingPad will provide
+campaign Yes, if branch
+isn’t provided
+guid LendingPad will provide
+occupancy Yes integer; values: 1=Primary Residence, 2=Second Home,
+3=Investment, 4=Other
+purpose Yes Integer; values: 1=Purchase, 2=CashOutRefinance,
+3=NoCashOutRefinance, 4=Construction,
+5=ConstructionPermanent, 6=Other
+appraisalValue Yes decimal
+purchasePrice - decimal
+loanAmount Yes decimal
+creditScore - integer
+loanType Yes integer; values: 1=Conventional, 2=FHA, 3=VA,
+4=USDARuralHousing, 8=Other, 7=HELOC, 9=HELOAN
+term - integer
+noteRate - double (from 0 to 100); ie: 3.
+propertyType Yes integer; 1=Attached, 2=Condominium, 3=Cooperative,
+4=Detached, 5=DetachedCondo, 6=HighRiseCondo,
+7=ManufacturedHome, 8=ManufacturedSingleWide,
+9=ManufacturedDoubleWide, 10=ManufacturedMultiwide,
+LendingPad ® Web API Guide Page 4
+
+11=ManufacturedHomeCondoPUDCoOp, 14=PUD_Attached,
+15=PUD_Detached
+units Yes integer; values: 1,2,3,
+channel - integer; 5=Retail, 8=Direct
+otherFinancing - decimal
+applicationTakenDate - string; format: "MM/dd/yyyy"
+program - string
+ltvRatioPercent - double; ie: 3.
+combinedLtvRatioPercent - double; ie: 3.
+note - string
+creatorEmail - string
+Loan assignments details
+Loan assignments > Loan Assistant details
+id - guid LendingPad will provide
+email - string
+Loan assignments > Loan Officer details
+id - guid LendingPad will provide
+email - string
+nmlsId - string
+Loan assignments > Loan Processor details
+id - guid LendingPad will provide
+email - string
+Borrower details
+firstName Yes string
+lastName Yes string
+ssn - string; only digits, ie: "123456789"
+birthDate - string; format: "MM/dd/yyyy"
+Borrower contact details
+email - string
+LendingPad ® Web API Guide Page 5
+
+mobilePhone - string; only digits, ie: "2027962790"
+homePhone - string; only digits, ie: "2027962790"
+workPhone - string; only digits, ie: "2027962790"
+Borrower current address details
+street - string
+city - string
+state - string; state abbreviation, ie: "VA"
+zipCode - string
+Borrower employments details
+name Yes string
+position Yes string
+type Yes integer; Primary = 1, Second = 2, Previous = 3
+Borrower employment income details
+amount Yes decimal
+description Yes string
+type Yes integer; Base = 1, Bonuses = 2, Commissions = 3, Overtime =
+4, Military Base Pay = 12, Military Rations Allowance = 13,
+Military Flight Pay = 14, Military Hazard Pay = 15, Military
+Clothes Allowance = 16, Military Quarters Allowance = 17,
+Military Prop Pay = 18, Military Overseas Pay = 19, Military
+Combat Pay = 20, Military Variable Housing Allowance = 21,
+Contract Basis = 26, Other = 99
+Borrower income details
+amount Yes decimal
+description Yes string
+type Yes integer; Alimony = 1, Automobile Or Expense Account = 2,
+Foster Care = 3, Notes Receivable Or Installment = 4, Pension
+Or Retirement Income = 5, Social Security Or Disability Income
+= 6, Trust Income = 7, Unemployment Or Welfare = 8, Boarder
+Income = 9, VA Benefits Non Educational = 10, Real Estate Or
+Mortgage Differential = 11, Mortgage Credit Certificate = 22,
+Trailing CoBorrower Income = 23, Other = 24, Child Support =
+25, Dividend Or Interest = 27, Installment = 28, Mortgage
+Differential = 29, VA Govt Mortgage CreditAmount = 30,
+Capital Gains = 31
+Co-Borrower details
+LendingPad ® Web API Guide Page 6
+
+firstName Yes string
+lastName Yes string
+ssn - string; only digits, ie: "123456789"
+birthDate - string; format: "MM/dd/yyyy"
+Co-Borrower contact details
+email - string
+mobilePhone - string; only digits, ie: "2027962790"
+homePhone - string; only digits, ie: "2027962790"
+workPhone - string; only digits, ie: "2027962790"
+Co-Borrower current address details
+street - string
+city - string
+state - string; state abbreviation, ie: "VA"
+zipCode - string
+Co-Borrower employments details
+name Yes string
+position Yes string
+type Yes integer; Primary = 1, Second = 2, Previous = 3
+Co-Borrower employment income details
+amount Yes decimal
+description Yes string
+type Yes integer; Base = 1, Bonuses = 2, Commissions = 3, Overtime =
+4, Military Base Pay = 12, Military Rations Allowance = 13,
+Military Flight Pay = 14, Military Hazard Pay = 15, Military
+Clothes Allowance = 16, Military Quarters Allowance = 17,
+Military Prop Pay = 18, Military Overseas Pay = 19, Military
+Combat Pay = 20, Military Variable Housing Allowance = 21,
+Contract Basis = 26, Other = 99
+Co-Borrower income details
+amount Yes decimal
+LendingPad ® Web API Guide Page 7
+
+description Yes string
+type Yes integer; Alimony = 1, Automobile Or Expense Account = 2,
+Foster Care = 3, Notes Receivable Or Installment = 4, Pension
+Or Retirement Income = 5, Social Security Or Disability Income
+= 6, Trust Income = 7, Unemployment Or Welfare = 8, Boarder
+Income = 9, VA Benefits Non Educational = 10, Real Estate Or
+Mortgage Differential = 11, Mortgage Credit Certificate = 22,
+Trailing CoBorrower Income = 23, Other = 24, Child Support =
+25, Dividend Or Interest = 27, Installment = 28, Mortgage
+Differential = 29, VA Govt Mortgage CreditAmount = 30,
+Capital Gains = 31
+Subject property address details
+street - string
+city - string
+state - string; state abbreviation, ie: "VA"
+zipCode - string
+Proposed housing expense details
+firstMortgage - decimal
+otherFinance - decimal
+hazardInsurance - decimal
+propertyTax - decimal
+mortgageInsurance - decimal
+hoa - decimal
+other - decimal
+Custom fields details
+id Yes guid
+values Yes string, boolean, double, integer;
+percentage: 10% == 0.
+date: "MM/dd/yyyy"
+2 values should be provided for custom fields of range type
+Typical Request Example:
+
+{
+"contact": "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+LendingPad ® Web API Guide Page 8
+
+"branch": "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"occupancy": 2,
+"purpose": 1,
+"loanType": 1,
+"appraisalValue": 500000,
+"loanAmount": 400000,
+"propertyType": 1,
+"units": 1,
+"borrower": {
+"firstName": "FirstName",
+"lastName": "LastName",
+"contacts": {
+"email": "test@email.com"
+}
+}
+}
+Maximum Request Example:
+
+{
+"contact": "be2cbafe-58f4-4e00-b45a-d182f405d386",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"branch": "a32ef245-8b1e-4c0c-87df-646de4595d7f",
+"campaign": null,
+"assignments": {
+"loanAssistant": null,
+"loanOfficer": {
+"id": "d45621e8-4d5d-4c94-acd2-6e3f236eaca6",
+"email": null,
+"nmlsId": null
+},
+"loanProcessor”: null
+},
+"occupancy": 2,
+"purpose": 1,
+"channel": null,
+"loanType": 1,
+"appraisalValue": 500000,
+"purchasePrice": 500000,
+"loanAmount": 400000,
+"creditScore": 750,
+"term": null,
+"noteRate": 3.75,
+"propertyType": 1,
+"units": 1,
+"otherFinancing": 200000,
+"applicationTaken": "11/29/2018",
+"program": "Program name",
+"ltvRatioPercent": 60.12,
+"combinedLtvRatioPercent": 62.99,
+"note": "This is a test note",
+"creatorEmail": "test@email.com",
+"borrower": {
+"firstName": "Test",
+"lastName": "D",
+"ssn": "123456789",
+"birthDate": "11/25/1980",
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": "1234567890",
+"homePhone": null,
+LendingPad ® Web API Guide Page 9
+
+"workPhone": null
+},
+"currentAddress": {
+"street": "Street",
+"city": "city",
+"state": "VA",
+"zipCode": "00000"
+},
+"employments": [
+{
+"name": "Employment A",
+"position": "Position A",
+"type": 1,
+"incomes": [
+{
+"amount": 1,
+"description": "Base",
+"type": 1
+}
+]
+}, {
+"name": "Employment B",
+"position": "Position B",
+"type": 1,
+"incomes": [
+{
+"amount": 2,
+"description": "Bonus",
+"type": 2
+}
+]
+}
+],
+"incomes": [
+{
+"amount": 3,
+"description": "Other description",
+"type": 24
+}
+]
+},
+"coBorrower": {
+"firstName": "Test",
+"lastName": "E",
+"ssn": "012345678",
+"birthDate": "10/22/1980",
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": "1234567890",
+"homePhone": null,
+"workPhone": null
+},
+"currentAddress": {
+"street": "Street",
+"city": "city",
+"state": "VA",
+"zipCode": "00000"
+},
+"employments": [],
+"incomes": []
+},
+"subjectPropertyAddress": {
+"street": "Street",
+"city": "city",
+"state": "VA",
+LendingPad ® Web API Guide Page 10
+
+"zipCode": "00000"
+},
+"proposedHousingExpense": {
+"firstMortgage": null,
+"otherFinance": 1002.12,
+"hazardInsurance": 1003.12,
+"propertyTax": null,
+"mortgageInsurance": 1005.12,
+"hoa": 1006.12,
+"other": 1007.
+},
+"customFields": [
+{
+"id": "a7d222c0-3192-4f2a-95ed-b016eb30474f",
+"values": ["Test A"]
+}, {
+"id": "7f2a31bb-b0bd-4c24-935b-18fd27c66932",
+"values": ["Text B"]
+}, {
+"id": "ee2ddd6f-462a-46fd-a37f-9de935ccc73b",
+"values": [true]
+}, {
+"id": "a4c62b41-63ca-4722-ab72-7cfd139ebbe9",
+"values": ["2021-06-22"]
+}, {
+"id": "e390c3d4-809d-4fb3-b693-375cb934dcbc",
+"values": [2.99]
+}, {
+"id": "a6e08099-71b8-4530-bedc-8c3e964d1dc1",
+"values": [2.22]
+}, {
+"id": "0ff9484f-e38c-490a-8767-6e29640de67b",
+"values": [2]
+}, {
+"id": "8997a7f0-83dd-4be2-abed-a2e177cf6b26",
+"values": [0.2345]
+}, {
+"id": "1badad81-049c-447e-91f2-5567025e71af",
+"values": ["C"]
+}, {
+"id": "e10f7782-e986-4964-9431-8748ab23e702",
+"values": ["A", "C"]
+}, {
+"id": "15780169-8c46-4cab-8756-2729a7d30d57",
+"values": [0.11, 0.22]
+}, {
+"id": "2ea50d93-220a-4634-b368-f863e22c616c",
+"values": [3.99, 4.99]
+}
+]
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"loanNumber": "R000001",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+LendingPad ® Web API Guide Page 11
+
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 12
+
+Import Standard File API Request
+POST /integrations/import/loan/file
+
+With this request, we will create a loan for you in our system. Please check out input params
+
+for what must be provided and what can be provided. As a response will be returned the ID of
+
+the created loan. The loan will be created per request. Please save this ID in your system for
+
+future references, such as when you use our Export API below. The content type of the request
+
+should be “multipart/form-data”.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+branch Yes, if
+campaign isn’t
+provided
+guid LendingPad will provide
+campaign Yes, if branch
+isn’t provided
+guid LendingPad will provide
+type Yes integer; values: 1=FNM 3.2; 2=MISMO 3.4 URLA
+channel - integer; 5=Retail, 8=Direct
+note - string
+creatorEmail - string
+Loan assignments details
+Loan assignments > Loan Assistant details
+id - guid LendingPad will provide
+email - string
+Loan assignments > Loan Officer details
+id - guid LendingPad will provide
+email - string
+nmlsId - string
+Loan assignments > Loan Processor details
+LendingPad ® Web API Guide Page 13
+
+id - guid LendingPad will provide
+email - string
+Custom fields details
+id Yes guid
+values Yes string, boolean, double, integer;
+percentage: 10% == 0.
+date: "MM/dd/yyyy"
+2 values should be provided for custom fields of range type
+Typical request example:
+
+{
+"contact" : "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company" : "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"branch" : "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"type": 1
+}
+Maximum Request Example:
+
+{
+"contact": "be2cbafe-58f4-4e00-b45a-d182f405d386",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"branch": "a32ef245-8b1e-4c0c-87df-646de4595d7f",
+"campaign": null,
+"type": 1,
+"assignments": {
+"loanAssistant": null,
+"loanOfficer": {
+"id": "d45621e8-4d5d-4c94-acd2-6e3f236eaca6",
+"email": null,
+"nmlsId": null
+},
+"loanProcessor: null
+},
+"channel": null,
+"note": "This is a test note",
+"creatorEmail": "test@email.com",
+"customFields": [
+{
+"id": "a7d222c0-3192-4f2a-95ed-b016eb30474f",
+"values": ["Test A"]
+}, {
+"id": "7f2a31bb-b0bd-4c24-935b-18fd27c66932",
+"values": ["Text B"]
+}, {
+"id": "ee2ddd6f-462a-46fd-a37f-9de935ccc73b",
+"values": [true]
+}, {
+"id": "a4c62b41-63ca-4722-ab72-7cfd139ebbe9",
+"values": ["2021-06-22"]
+}, {
+"id": "e390c3d4-809d-4fb3-b693-375cb934dcbc",
+"values": [2.99]
+}, {
+"id": "a6e08099-71b8-4530-bedc-8c3e964d1dc1",
+LendingPad ® Web API Guide Page 14
+
+"values": [2.22]
+}, {
+"id": "0ff9484f-e38c-490a-8767-6e29640de67b",
+"values": [2]
+}, {
+"id": "8997a7f0-83dd-4be2-abed-a2e177cf6b26",
+"values": [0.2345]
+}, {
+"id": "1badad81-049c-447e-91f2-5567025e71af",
+"values": ["C"]
+}, {
+"id": "e10f7782-e986-4964-9431-8748ab23e702",
+"values": ["A", "C"]
+}, {
+"id": "15780169-8c46-4cab-8756-2729a7d30d57",
+"values": [0.11, 0.22]
+}, {
+"id": "2ea50d93-220a-4634-b368-f863e22c616c",
+"values": [3.99, 4.99]
+}
+]
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"loanNumber": "R000001",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+MISMO 3.4 Extension
+
+LendingPad supports the import of additional information provided in the MISMO 3.4 file. The
+
+extension information should be added to a loan record with loan role type “SubjectLoan.”
+
+Example:
+
+<EXTENSION>
+<OTHER>
+<LENDINGPAD>
+<CRITICAL_DATES>
+LendingPad ® Web API Guide Page 15
+
+<ApplicationTaken>yyyyMMdd</ApplicationTaken>
+<Closed>yyyyMMdd</Closed>
+<Funded>yyyyMMdd</Funded>
+<Purchased>yyyyMMdd</Purchased>
+<Processing>yyyyMMddTHHmmssZ</Processing>
+<InitialSubmission>yyyyMMddTHHmmssZ</InitialSubmission>
+<Approved>yyyyMMddTHHmmssZ</Approved>
+<Suspended>yyyyMMddTHHmmssZ</Suspended>
+<ConditionSubmission>yyyyMMddTHHmmssZ</ConditionSubmission>
+<ClearToClose>yyyyMMddTHHmmssZ</ClearToClose>
+<Denied>yyyyMMddTHHmmssZ</Denied>
+<Rescinded>yyyyMMddTHHmmssZ</Rescinded>
+<InShipping>yyyyMMdd</InShipping>
+</CRITICAL_DATES>
+</LENDINGPAD>
+</OTHER>
+</EXTENSION>
+FNM 3.2 Extension
+
+LendingPad supports the import of additional information provided in the FNM 3.2 file.
+
+Field Data Stream Position Length Description
+
+10S-01 “10S” 1 3 Borrower’s Credit Scores
+
+10S-02 SSN 4 9 Text - Numbers
+
+10S-03 Experian 13 4 Text - Numbers
+
+10S-04 TransUnion 17 4 Text - Numbers
+
+10S-05 Equifax 21 4 Text - Numbers
+
+CDS-01 “CDS” 1 3 Loan Critical Dates
+
+CDS-02 Application Taken 4 8 Text - Date. Format “yyyyMMdd”
+
+CDS-03 Closed 12 8 Text - Date. Format “yyyyMMdd”
+
+CDS-04 Funded 20 8 Text - Date. Format “yyyyMMdd”
+
+CDS-05 Purchased 28 8 Text - Date. Format “yyyyMMdd”
+
+CDS-06 Processing 36 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-07 Initial Submission 50 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-08 Approved 64 14 Text - Date. Format “yyyyMMddHHmmss”
+
+LendingPad ® Web API Guide Page 16
+
+CDS-09 Suspended 78 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-10 Condition Submission 94 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-11 Clear To Close 106 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-12 Denied 120 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-13 Rescinded 134 14 Text - Date. Format “yyyyMMddHHmmss”
+
+CDS-14 In Shipping 148 8 Text - Date. Format “yyyyMMdd”
+
+LendingPad ® Web API Guide Page 17
+
+Import Documents API Request
+POST /integrations/loans/documents/import
+
+With this request, we will add a document to an existing loan for you in our system. Please
+
+check out input params for what must be provided and what can be provided. As a response
+
+will be returned the ID of the created loan document. The loan document will be created per
+
+request. The content type of the request should be “multipart/form-data”.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+name Yes string
+description - string
+effectiveDate - string; format: "MM/dd/yyyy"
+Conditions
+id - guid LendingPad unique
+identifier
+referenceId - string 3rd party unique identifier
+Typical Request Example:
+
+contact = "3a239eb4-025d-45a7-8015-f177534c0e15"
+company = "7ff28005-58b0-4584-9f13-109ee0d0c2ad"
+loan = "677e2fca-a27f-47cd-aad2-ee6585d52fb1"
+name = "Sample Document"
+Maximum Request Example:
+
+contact = "3a239eb4-025d-45a7-8015-f177534c0e15"
+company = "7ff28005-58b0-4584-9f13-109ee0d0c2ad"
+loan = "677e2fca-a27f-47cd-aad2-ee6585d52fb1"
+name = "Sample Document"
+description = "Sample Document Description"
+effectiveDate = "04/23/2020"
+conditions[0].id = "ba239eb4-025d-45a7-8015-f177534c0e15"
+LendingPad ® Web API Guide Page 18
+
+conditions[1].referenceId = "3rd-party-reference-id"
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 19
+
+Import Loan Notes API Request
+POST /integrations/loans/notes/import
+
+With this request, we will add notes to an existing loan for you in our system. Please check out
+
+input params for what must be provided and what can be provided. As a response will be
+
+returned the ID of the import request.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+notes Yes array of strings
+Typical request Example:
+
+{
+"contact" : "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company" : "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan" : "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"notes": ["note a", "note b"]
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 20
+
+Import Loan Conditions API Request
+POST /integrations/loans/conditions/import
+
+With this request, we will add conditions to an existing loan for you in our system. Please check
+
+out input params for what must be provided and what can be provided. As a response will be
+
+returned the ID of the import request.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+conditionReferenceId No string 3rd party condition unique
+identifier
+category Yes integer; values: 1=Prior-To-Closing; 2=Warning; 3=At-Closing;
+4=Internal Compliance; 5=Prior-To-Purchase
+type Yes integer; values: 0=Other; 1=DU; 2=LP; 3=Appraisal; 4=Income;
+5=Asset; 6=Eligibility; 7=Credit Report; 8=Flood Report;
+9=TRID; 10=VVOE; 11=Employment; 12=Hazard Insurance;
+13=Down Payment; 15=REO; 16=Property; 17=Title; 18=Tax
+Return; 19=4506-T; 20=Subordination; 21=Mortgage
+Insurance; 22=Disclosure; 23=Sale Contract; 24=POA;
+25=Closing Disclosure; 26=Lock; 27=Suspense
+description Yes array of strings
+responsibleParties No array of integers; values: 1=Lender; 2=Borrower; 3=Broker
+Typical request Example:
+
+{
+"contact": "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan": "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"conditionReferenceId": "ReferenceID123",
+"category": 1,
+"type": 0,
+"description": "A sample condition description",
+"responsibleParties": [2, 3]
+}
+Successful Response Example:
+
+LendingPad ® Web API Guide Page 21
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 22
+
+Update Loan Conditions API Request
+POST /integrations/loans/conditions/update
+
+With this request, we will update existing loan conditions for you in our system. Please check
+
+out input params for what must be provided and what can be provided. As a response will be
+
+returned the ID of the import request.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+condition Yes, if
+conditionrefere
+nceId isn’t
+provided
+guid LendingPad provides it in
+a import loan conditions
+response
+conditionReferenceId Yes, if
+condition isn’t
+provided
+string 3rd party loan unique
+identifier
+category Yes integer; values: 1=Prior-To-Closing 3.2; 2=Warning;
+3=At-Closing; 5=Prior-To-Purchase
+type Yes integer; values: 0=Other; 1=DU; 2=LP; 3=Appraisal; 4=Income;
+5=Asset; 6=Eligibility; 7=Credit Report; 8=Flood Report;
+9=TRID; 10=VVOE; 11=Employment; 12=Hazard Insurance;
+13=Down Payment; 15=REO; 16=Property; 17=Title; 18=Tax
+Return; 19=4506-T; 20=Subordination; 21=Mortgage
+Insurance; 22=Disclosure; 23=Sale Contract; 24=POA;
+25=Closing Disclosure; 26=Lock; 27=Suspense
+description Yes array of strings
+responsibleParties No array of integers; values: 1=Lender; 2=Borrower; 3=Broker
+Typical request Example:
+
+{
+"contact": "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan": "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"condition": "a67f3df1-9292-44ee-9a39-09029495b664",
+"conditionReferenceId": "ReferenceID123",
+"category": 1,
+LendingPad ® Web API Guide Page 23
+
+"type": 0,
+"description": "A sample condition description",
+"responsibleParties": [2, 3]
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 24
+
+Delete Loan Conditions API Request
+POST /integrations/loans/conditions/delete
+
+With this request, we will delete conditions in an existing loan for you in our system. Please
+
+check out input params for what must be provided and what can be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides
+condition Yes, if
+conditionrefere
+nceId isn’t
+provided
+guid LendingPad provides it in
+a import loan conditions
+response
+conditionReferenceId Yes, if
+condition isn’t
+provided
+string 3rd party loan unique
+identifier
+Typical request Example:
+
+{
+"contact": "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan": "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"condition”: “66123274-7651-4822-9ac5-dad9f3fb5511",
+"conditionReferenceId": "ReferenceID123"
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+LendingPad ® Web API Guide Page 25
+
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 26
+
+Get Loan Conditions API Request
+GET /integrations/loans/conditions?contact=&company=&loan=
+
+With this request, we will return the list of loan conditions for you. Please check out `input
+
+params` for what must be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+Data Model
+
+Field Type, Supported Values Description
+
+id guid Condition identifier
+referenceId string 3rd party condition unique
+identifier
+createdDate string; ie: "2018-10-10T11:13:09"
+createdBy Name-Email object
+clearedDate string; ie: "2018-10-10T11:13:09"
+clearedBy Name-Email object
+category Id-Name object; values: 1=Prior-To-Closing 3.2; 2=Warning;
+3=At-Closing; 5=Prior-To-Purchase
+type Id-Name object; values: 0=Other; 1=DU; 2=LP; 3=Appraisal;
+4=Income;
+5=Asset; 6=Eligibility; 7=Credit Report; 8=Flood Report;
+9=TRID; 10=VVOE; 11=Employment; 12=Hazard Insurance;
+13=Down Payment; 15=REO; 16=Property; 17=Title; 18=Tax
+Return; 19=4506-T; 20=Subordination; 21=Mortgage
+Insurance; 22=Disclosure; 23=Sale Contract; 24=POA;
+25=Closing Disclosure; 26=Lock; 27=Suspense
+description string
+LendingPad ® Web API Guide Page 27
+
+responsibleParties array of Id-Name objects; values: 1=Lender; 2=Borrower;
+3=Broker
+Document details
+id guid Document identifier
+name string
+Document > Type details
+name string
+type Id-Name object;; values: Other = 1, CreditReport = 2,
+FloodReport = 3, AusFindings = 4, Vvoe = 5, MiCertificate = 6,
+TaxTranscript = 7, CreditReportGapReport = 8, Imlq = 9,
+FraudReport = 10, _4506T = 11, Appraisal = 12,
+AdverseActionStatement = 13, CreditPackage = 14,
+UcdFindings = 15, ClosingDisclosure = 16, LockConfirmation
+= 17, TitleIntegration = 18, EarlyCheckFindings = 19,
+UnderwritingApproval = 20, ESignedDocuments = 21,
+AssetVerification = 22, ConsumerUploaded = 23,
+ComplianceAudit = 24, DisclosureFee = 25, IdVerification =
+26, BorrowerAuthorization = 27, Voe = 28, Ssa89 = 29,
+IntegrationPartyUploaded = 30, Ssr = 31,
+DisclosureDocument = 32, InitialDisclosures = 33Other = 1,
+CreditReport = 2, FloodReport = 3, AusFindings = 4, Vvoe = 5,
+MiCertificate = 6, TaxTranscript = 7, CreditReportGapReport
+= 8, Imlq = 9, FraudReport = 10, _4506T = 11, Appraisal = 12,
+AdverseActionStatement = 13, CreditPackage = 14,
+UcdFindings = 15, ClosingDisclosure = 16, LockConfirmation
+= 17, TitleIntegration = 18, EarlyCheckFindings = 19,
+UnderwritingApproval = 20, ESignedDocuments = 21,
+AssetVerification = 22, ConsumerUploaded = 23,
+ComplianceAudit = 24, DisclosureFee = 25, IdVerification =
+26, BorrowerAuthorization = 27, Voe = 28, Ssa89 = 29,
+IntegrationPartyUploaded = 30, Ssr = 31,
+DisclosureDocument = 32, InitialDisclosures = 33
+Successful Response Example:
+
+{
+"loan": "67efeee3-db11-4896-917d-ea751d2fd0f1",
+"conditions": [
+{
+"id": "0c6740be-7c97-4041-b018-9dcfa6d49bb2",
+"category": {
+"id": 1,
+"name": "Prior To Closing"
+},
+"description": "Sample condition",
+"responsibleParties": [],
+"type": {
+"id": 0,
+"name": "Other"
+},
+"clearedDate": null,
+"clearedBy": null,
+LendingPad ® Web API Guide Page 28
+
+"createdDate": "2024-08-02T08:58:12Z",
+"createdBy": {
+"name": "FirstName LastName",
+"email": "test@email.com"
+},
+"documents": [
+{
+"id": "e64ed04a-e820-4867-81a3-343fb50d7d86",
+"name": "Document Name",
+"type": {
+"name": "Loan document type name",
+"type": {
+"id": 1,
+"name": "Other"
+}
+}
+}
+],
+"referenceId": null
+}
+]
+}
+LendingPad ® Web API Guide Page 29
+
+Export Loan Conditions API Request
+LendingPad exports the updated loan conditions (or loans in a batch of up to 25 loans) during 5
+
+minutes after the loan was modified. The system will send this information back to 3rd-party
+
+servers. Please create a method that can handle the post with a JSON model from LendingPad.
+
+Please also provide URL and basic authorization information.
+
+The POST method should return status code 200 in response if the request headers contain
+
+‘X-TEST’ header. The request with this header is a test request that includes the sample data
+
+the 3rd party should not handle. The LendingPad uses this type of request to validate that the
+
+connection between the LendingPad and the 3rd party is active.
+
+Data Model
+
+Field Type, Supported Values Description
+
+id guid Condition identifier
+referenceId string 3rd party condition unique
+identifier
+createdDate string; ie: "2018-10-10T11:13:09"
+createdBy Name-Email object
+clearedDate string; ie: "2018-10-10T11:13:09"
+clearedBy Name-Email object
+category Id-Name object; values: 1=Prior-To-Closing 3.2; 2=Warning;
+3=At-Closing; 5=Prior-To-Purchase
+type Id-Name object; values: 0=Other; 1=DU; 2=LP; 3=Appraisal;
+4=Income;
+5=Asset; 6=Eligibility; 7=Credit Report; 8=Flood Report;
+9=TRID; 10=VVOE; 11=Employment; 12=Hazard Insurance;
+13=Down Payment; 15=REO; 16=Property; 17=Title; 18=Tax
+Return; 19=4506-T; 20=Subordination; 21=Mortgage
+Insurance; 22=Disclosure; 23=Sale Contract; 24=POA;
+25=Closing Disclosure; 26=Lock; 27=Suspense
+description string
+responsibleParties array of Id-Name objects; values: 1=Lender; 2=Borrower;
+3=Broker
+Document details
+LendingPad ® Web API Guide Page 30
+
+id guid Document identifier
+name string
+Document > Type details
+name string
+type Id-Name object;; values: Other = 1, CreditReport = 2,
+FloodReport = 3, AusFindings = 4, Vvoe = 5, MiCertificate = 6,
+TaxTranscript = 7, CreditReportGapReport = 8, Imlq = 9,
+FraudReport = 10, _4506T = 11, Appraisal = 12,
+AdverseActionStatement = 13, CreditPackage = 14,
+UcdFindings = 15, ClosingDisclosure = 16, LockConfirmation
+= 17, TitleIntegration = 18, EarlyCheckFindings = 19,
+UnderwritingApproval = 20, ESignedDocuments = 21,
+AssetVerification = 22, ConsumerUploaded = 23,
+ComplianceAudit = 24, DisclosureFee = 25, IdVerification =
+26, BorrowerAuthorization = 27, Voe = 28, Ssa89 = 29,
+IntegrationPartyUploaded = 30, Ssr = 31,
+DisclosureDocument = 32, InitialDisclosures = 33Other = 1,
+CreditReport = 2, FloodReport = 3, AusFindings = 4, Vvoe = 5,
+MiCertificate = 6, TaxTranscript = 7, CreditReportGapReport
+= 8, Imlq = 9, FraudReport = 10, _4506T = 11, Appraisal = 12,
+AdverseActionStatement = 13, CreditPackage = 14,
+UcdFindings = 15, ClosingDisclosure = 16, LockConfirmation
+= 17, TitleIntegration = 18, EarlyCheckFindings = 19,
+UnderwritingApproval = 20, ESignedDocuments = 21,
+AssetVerification = 22, ConsumerUploaded = 23,
+ComplianceAudit = 24, DisclosureFee = 25, IdVerification =
+26, BorrowerAuthorization = 27, Voe = 28, Ssa89 = 29,
+IntegrationPartyUploaded = 30, Ssr = 31,
+DisclosureDocument = 32, InitialDisclosures = 33
+Request Example:
+
+[
+{
+"loan": "67efeee3-db11-4896-917d-ea751d2fd0f1",
+"conditions": [
+{
+"id": "0c6740be-7c97-4041-b018-9dcfa6d49bb2",
+"category": {
+"id": 1,
+"name": "Prior To Closing"
+},
+"description": "Sample condition",
+"responsibleParties": [],
+"type": {
+"id": 0,
+"name": "Other"
+},
+"clearedDate": null,
+"clearedBy": null,
+"createdDate": "2024-08-02T08:58:12Z",
+"createdBy": {
+"name": "FirstName LastName",
+"email": "test@email.com"
+},
+LendingPad ® Web API Guide Page 31
+
+"documents": [
+{
+"id": "e64ed04a-e820-4867-81a3-343fb50d7d86",
+"name": "Document Name",
+"type": {
+"name": "Loan document type name",
+"type": {
+"id": 1,
+"name": "Other"
+}
+}
+}
+],
+"referenceId": null
+}
+]
+}
+]
+LendingPad ® Web API Guide Page 32
+
+Update Loan with Standard File API Request
+POST /integrations/update/loan/file
+
+With this request, we will update a loan for you in our system. Please check out input params
+
+for what must be provided and what can be provided. The loan will be updated per request. The
+
+content type of the request should be “multipart/form-data”.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid
+type Yes integer; values: 1=FNM 3.2; 2=MISMO 3.4 URLA
+Request example:
+
+{
+"contact" : "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company" : "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan" : "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"type": 1
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+MISMO 3.4 Extension
+
+LendingPad ® Web API Guide Page 33
+
+LendingPad supports the import of additional information provided in the MISMO 3.4 file. The
+
+extension information should be added to a loan record with loan role type “SubjectLoan.” For more
+
+information please reference the “Import Standard File API Request” section.
+
+FNM 3.2 Extension
+
+LendingPad supports the import of additional information provided in the FNM 3.2 file. For more
+
+information please reference the “Import Standard File API Request” section.
+
+LendingPad ® Web API Guide Page 34
+
+Update Loan API Request
+POST /integrations/update/loan
+
+With this request, we will update a loan date in our system. Please check out input params for
+
+what must be provided and what can be provided. Include the dates information that should be
+
+updated in the loan. The loan will be updated per every request.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid
+Dates details
+approved No string; ie: "2018-10-10T11:13:09"
+clearToClose No string; ie: "2018-10-10T11:13:09"
+closed No string; ie: "2018-10-10T00:00:00"
+funded No string; ie: "2018-10-10T00:00:00"
+suspended No string; ie: "2018-10-10T11:13:09"
+withdrawn No string; ie: "2018-10-10T11:13:09"
+denied No string; ie: "2018-10-10T11:13:09"
+applicationTaken No string; ie: "2018-10-10T00:00:00"
+registered No string; ie: "2018-10-10T11:13:09"
+brokerInitialSubmission No string; ie: "2018-10-10T11:13:09"
+brokerConditionSubmissi
+on
+No string; ie: "2018-10-10T11:13:09"
+rescinded No string; ie: "2018-10-10T11:13:09"
+initialSubmission No string; ie: "2018-10-10T11:13:09"
+conditionSubmission No string; ie: "2018-10-10T11:13:09"
+preDeny No string; ie: "2018-10-10T11:13:09"
+LendingPad ® Web API Guide Page 35
+
+postClosing No string; ie: "2018-10-10T11:13:09"
+inShipping No string; ie: "2018-10-10T00:00:00"
+purchased No string; ie: "2018-10-10T00:00:00"
+incomplete No string; ie: "2018-10-10T11:13:09"
+notAccepted No string; ie: "2018-10-10T11:13:09"
+scheduleClosing No string; ie: "2018-10-10T00:00:00"
+loanEstimateIssued No string; ie: "2018-10-10T00:00:00"
+IntentToProceed No string; ie: "2018-10-10T00:00:00"
+servicing No string; ie: "2018-10-10T00:00:00"
+closingDisclosureIssued No string; ie: "2018-10-10T00:00:00"
+closingDisclosureReceive
+d
+No string; ie: "2018-10-10T00:00:00"
+purchaseReview No string; ie: "2018-10-10T11:13:09"
+purchaseSuspense No string; ie: "2018-10-10T11:13:09"
+clearToPurchase No string; ie: "2018-10-10T11:13:09"
+purchasedFromSeller No string; ie: "2018-10-10T11:13:09"
+firstPaymentDate No string; ie: "2018-10-10T11:13:09"
+closingEstimate No string; ie: "2018-10-10T11:13:09"
+fundingEstimate No string; ie: "2018-10-10T11:13:09"
+Assignments details
+Assignments > Type details
+type Yes integer; values: 3=LoanAssistant, 4=LoanOfficer,
+5=LoanProcessor, 6=Underwriter, 7=Closer, 10=PostCloser,
+14=Funder, 18=WholesaleProcessor
+Assignments > User details
+id No guid LendingPad will provide
+email No string
+nmlsId No string Is available only for loan
+officers
+LendingPad ® Web API Guide Page 36
+
+Fields details
+occupancy
+No integer; values: 1=Primary Residence, 2=Second Home,
+3=Investment, 4=Other
+purpose
+No Integer; values: 1=Purchase, 2=CashOutRefinance,
+3=NoCashOutRefinance, 4=Construction,
+5=ConstructionPermanent, 6=Other
+appraisalValue No decimal
+purchasePrice No decimal
+loanAmount No decimal
+loanType No integer; values: 1=Conventional, 2=FHA, 3=VA,
+4=USDARuralHousing, 8=Other, 7=HELOC, 9=HELOAN
+noteRate No double (from 0 to 100); ie: 3.75
+propertyType No integer; 1=Attached, 2=Condominium, 3=Cooperative,
+4=Detached, 5=DetachedCondo, 6=HighRiseCondo,
+7=ManufacturedHome, 8=ManufacturedSingleWide,
+9=ManufacturedDoubleWide, 10=ManufacturedMultiwide,
+11=ManufacturedHomeCondoPUDCoOp, 14=PUD_Attached,
+15=PUD_Detached
+escrowWaiver No Bool: “True” or “False”
+campaign No guid LendingPad will provide
+creditScore No integer
+Fields > Subject property address details
+street - string
+city - string
+state - string; state abbreviation, ie: "VA"
+zipCode - string
+Custom fields details
+id Yes guid
+values Yes string, boolean, double, integer;
+percentage: 10% == 0.1
+date: "MM/dd/yyyy"
+2 values should be provided for custom fields of range type
+LendingPad ® Web API Guide Page 37
+
+Request example:
+
+{
+"contact": "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan": "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+"dates": {
+"approved": "2023-09-29T11:13:09",
+"clearToClose": "2023-09-29T15:46:18"
+},
+"assignments": [
+{
+"user": {
+"id": "d45621e8-4d5d-4c94-acd2-6e3f236eaca6",
+"email": null,
+"nmlsId": null
+},
+"type": {
+"type": 4
+}
+}
+],
+"fields": {
+"occupancy": 2,
+"purpose": 1,
+"loanType": 1,
+"appraisalValue": 500000,
+"purchasePrice": 500000,
+"loanAmount": 400000,
+"subjectPropertyAddress": {
+"street": "Street",
+"city": "city",
+"state": "VA",
+"zipCode": "00000"
+}
+},
+"customFields": [
+{
+"id": "a7d222c0-3192-4f2a-95ed-b016eb30474f",
+"values": ["Test A"]
+}, {
+"id": "7f2a31bb-b0bd-4c24-935b-18fd27c66932",
+"values": ["Text B"]
+}, {
+"id": "47fba5b1-1393-496b-9276-897fd7a5c506",
+"values": ["0023-11-28"]
+}, {
+"id": "e390c3d4-809d-4fb3-b693-375cb934dcbc",
+"values": [2.99]
+}
+]
+}
+Successful Response Example:
+
+{
+LendingPad ® Web API Guide Page 38
+
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+Export Loan API Request
+LendingPad exports the updated loan (or loans in a batch of up to 25 loans) during 5 minutes
+
+after the loan was modified. The system will send this information back to 3rd-party servers.
+
+Please create a method that can handle the post with a JSON model from LendingPad. Please
+
+also provide URL and basic authorization information. A LO’s NMLS ID as well as his/her email
+
+address will be in the export request.
+
+The POST method should return status code 200 in response if the request headers contain
+
+‘X-TEST’ header. The request with this header is a test request that includes the sample data
+
+the 3rd party should not handle. The LendingPad uses this type of request to validate that the
+
+connection between the LendingPad and the 3rd party is active.
+
+Data Model
+
+Field Type, Supported Values Description
+
+loanId guid
+companyId guid
+loanNumber string
+brokerLoanNumber string
+lenderLoanNumber string
+LendingPad ® Web API Guide Page 39
+
+occupancy Id-Name object; values: 1=Primary Residence, 2=Second
+Home, 3=Investment, 4=Other
+purpose Id-Name object; values: 1=Purchase, 2=Cash Out
+Refinance, 3=No Cash Out Refinance, 4=Construction,
+5=Construction Permanent, 6=Other
+channelType Id-Name object; values: 5=Retail, 7=Wholesale, 8=Direct
+dispositionType Id-Name object; values: 1=None, 2=LeftVoicemail,
+4=Emailed, 5=NotInterestedOther, 6=NotQualified,
+8=PreQualified, 9=Other, 10=DoNotSolicit,
+11=RingsNoVoicemail, 12=CustomerConsidering,
+14=RateToHigh, 15=WrongNumber,
+16=NoPhoneNumberProvided,
+17=NumberNoLongerInService, 18=HungUpOnMe,
+19=DoNotLikeOrTrustMe, 20=SellingHome,
+21=OverseasOrOutOfTown,
+22=FollowUpOrSetAppointment, 23=NoReasonGiven,
+24=AlreadyClosedOrInProcessWithAnotherLender,
+25=PreApplication, 26=BorrowerDislikesSubservicer,
+27=ProductNotOffered
+documentType Id-Name object; values:1=Alternative,
+2=FullDocumentation, 3=NoDepositVerification,
+4=NoDepositVerificationEmploymentVerificationOrIncom
+eVerification, 5=NoDocumentation,
+6=NoEmploymentVerificationOrIncomeVerification,
+7=Reduced, 8=StreamlineRefinance, 9=NoRatio,
+10=NoIncomeNoEmploymentNoAssetsOn1003,
+11=NoIncomeOn1003,
+12=NoVerificationOfStatedIncomeEmploymentOrAssets,
+13=NoVerificationOfStatedIncomeOrAssests,
+14=NoVerificationOfStatedAssets,
+15=NoVerificationOfStatedIncomeOrEmployment,16=No
+VerificationOfStatedIncome,17=VerbalVerificationOfEmpl
+oyment,18=OnePaystub,19=OnePaystubAndVerbalVerific
+ationOfEmployment,20=OnePaystubAndOneW2AndVerba
+lVerificationOfEmploymentOrOneYear1040,
+21=FullDocumentation12Months,22=BankStatementPers
+onal12Months,23=BankStatementPersonal24Months,24=
+BankStatementBusiness12Months,25=BankStatementBu
+siness24Months,26=AssetUtilization,27=Dscr,28=TaxRet
+urnsOneYear,29=OtherBankStatements
+appraisalValue decimal
+purchasePrice decimal
+loanAmount decimal
+totalLoanAmount decimal
+creditScore int
+LendingPad ® Web API Guide Page 40
+
+loanType Id-Name object; values: 1=Conventional, 2=FHA, 3=VA,
+4=USDA Rural Housing, 8=Other
+term int
+noteRate double, ie: 3.75
+propertyType Id-Name object; values: 1=Attached, 2=Condominium,
+3=Cooperative, 4=Detached, 5=Detached Condo, 6=High
+Rise Condo, 7=Manufactured Home, 8=Manufactured
+Single Wide, 9=Manufactured Double Wide,
+10=Manufactured Multiwide, 11=Manufactured Home
+Condo PUD Co Op, 12=Modular Or Pre Fabricated Home,
+13=PUD, 14=PUD Attached, 15=PUD Detached
+units integer; values: 1,2,3,4
+otherFinancing decimal
+apr double
+ltvRatioPercent double
+combinedLtvRatioPercent double
+frontDti double
+backDti double
+positiveNetRentalIncome decimal
+negativeNetRentalIncome decimal
+lenderCredit decimal
+loanStatus Id-Name object; values: Lead = 1, Processing = 33, Pre
+Qualify = 2, Registered = 32, Pre Approval = 3, Application
+Taken = 4, Broker Initial Submission = 30, Prospect = 27,
+Initial Submission = 22, Approved = 24, Suspended = 25,
+Pre Deny = 28, Broker Condition Submission = 31,
+Condition Submission = 23, Clear To Close = 26, Denied =
+18, Withdrawn = 19, Not Accepted = 20, Incomplete = 21,
+Rescinded = 29, Closed = 12, Funded = 13, Post Closing =
+14, In Shipping = 15, Purchased = 17, Servicing = 16
+numberOfTimesLoanInStatus Int, i.e: “4”: 2(loan was in application taken status two
+times)
+Id-Name object; values: Lead = 1, Processing = 33, Pre
+Qualify = 2, Registered = 32, Pre Approval = 3, Application
+Taken = 4, Broker Initial Submission = 30, Prospect = 27,
+Initial Submission = 22, Approved = 24, Suspended = 25,
+Pre Deny = 28, Broker Condition Submission = 31,
+Condition Submission = 23, Clear To Close = 26, Denied =
+18, Withdrawn = 19, Not Accepted = 20, Incomplete = 21,
+Rescinded = 29, Closed = 12, Funded = 13, Post Closing =
+14, In Shipping = 15, Purchased = 17, Servicing = 16
+LendingPad ® Web API Guide Page 41
+
+lender string
+broker string
+totalLiquidAssets decimal
+totalLiabilitiesNonReoMonthPaymentAmou
+nt
+decimal
+totalLiabilityBalance decimal
+borrowers collection with all borrowers of ‘Borrower’ or ‘Co-Signer’
+applicant types
+Campaign Details
+name string
+id guid
+Branch Details
+name string
+id guid
+Notes details
+userName string
+date string; ie: "1980-01-01T00:00:00"
+message string
+Assignments details
+Assignments > Loan Assistant details
+name string
+email string
+workPhone string
+mobilePhone string
+Assignments > Loan officer details
+name string
+email string
+workPhone string
+mobilePhone string
+nmlsId string v. 2023-09
+LendingPad ® Web API Guide Page 42
+
+Assignments > Loan processor details
+name string
+email string
+workPhone string
+mobilePhone string
+Assignments > Loan underwriter details
+name string
+email string
+workPhone string
+mobilePhone string
+Assignments > Loan closer details
+name string
+email string
+workPhone string
+mobilePhone string
+Assignments > Loan post closer details
+name string
+email string
+workPhone string
+mobilePhone string
+Assignments > Loan funder details
+name string
+email string
+workPhone string
+mobilePhone string
+Subject property address details
+street string
+city string
+state string; state abbreviation, ie: "VA"
+LendingPad ® Web API Guide Page 43
+
+zipCode string
+county string
+Borrower details
+id guid
+firstName string
+middleName string
+lastName string
+birthDate string; ie: "1980-01-01T00:00:00"
+ssn string
+mailingAddressSameAsSubjectPropertyAd
+dress
+bool
+Borrower > Co-Borrower
+id guid
+firstName string
+middleName string
+lastName string
+Borrower > Contact details
+email string
+mobilePhone string
+workPhone string
+homePhone string
+Borrower > Current / Mailing address details
+street string
+city string
+state string
+zipCode string
+Borrower > Employments details
+id guid
+name string
+LendingPad ® Web API Guide Page 44
+
+position string
+type Id-Name object; values: Primary = 1, Second = 2, Previous
+= 3
+Borrower > Employments details > Income details
+amount decimal
+description string
+type Id-Name object; values: Base = 1, Bonuses = 2,
+Commissions = 3, Overtime = 4, Military Base Pay = 12,
+Military Rations Allowance = 13, Military Flight Pay = 14,
+Military Hazard Pay = 15, Military Clothes Allowance = 16,
+Military Quarters Allowance = 17, Military Prop Pay = 18,
+Military Overseas Pay = 19, Military Combat Pay = 20,
+Military Variable Housing Allowance = 21, Contract Basis
+= 26, IncomeOrLoss = 50, Other = 99
+Borrower > Income details
+amount decimal
+description string
+type Id-Name object; values: Alimony = 1, Automobile Or
+Expense Account = 2, Foster Care = 3, Notes Receivable
+Or Installment = 4, Pension Or Retirement Income = 5,
+Social Security Or Disability Income = 6, Trust Income = 7,
+Unemployment Or Welfare = 8, Boarder Income = 9, VA
+Benefits Non Educational = 10, Real Estate Or Mortgage
+Differential = 11, Mortgage Credit Certificate = 22,
+Trailing CoBorrower Income = 23, Other = 24, Child
+Support = 25, Dividend Or Interest = 27, Installment = 28,
+Mortgage Differential = 29, VA Govt Mortgage
+CreditAmount = 30, Capital Gains = 31
+Borrower > Credit report identifiers
+identifier string
+name string Credit report
+provider name
+date string; ie: "2018-10-10T11:13:09" Credit report issue
+date
+Loan program details
+name string
+programType Id-Name object; values: 1 = Conforming, 2 = High
+Balance, 3 = Jumbo, 4 = Other
+programRateType Id-Name value; values: 1 = Fixed, 2 = Adjustable Rate
+LendingPad ® Web API Guide Page 45
+
+Proposed housing expense details
+firstMortgage decimal
+otherFinance decimal
+hazardInsurance decimal
+propertyTax decimal
+mortgageInsurance decimal
+hoa decimal
+other decimal
+Loan originator details
+organizationName string
+organizationNmlsId string
+name string
+email string
+phone string
+officerNmlsId string
+Loan originator > Organization address details
+street string
+city string
+state string
+zipCode string
+Loan additional information
+Loan additional > General tracking details
+lienPositionType Id-Name object; values: 1 = First Lien, 2 = Second Lien, 3
+= Third Lien, 4 = Fourth Lien, 5 = Other
+escrowWaiver boolean
+channelType Id-Name object; values: 5 = Retail, 7 = Wholesale, 8 =
+Direct
+Loan additional > Hazard insurance details
+policyNumber string
+LendingPad ® Web API Guide Page 46
+
+policyCoverage decimal. nullable
+annualPremium decimal. nullable
+paidThroughDate string; ie: "2018-10-10T00:00:00"
+Loan additional > Underwriting details
+documentType Id-Name object; values: Alternative = 1,
+FullDocumentation = 2, NoDepositVerification = 3,
+NoDepositVerificationEmploymentVerificationOrIncomeV
+erification = 4, NoDocumentation = 5,
+NoEmploymentVerificationOrIncomeVerification = 6,
+Reduced = 7, StreamlineRefinance = 8, NoRatio = 9,
+NoIncomeNoEmploymentNoAssetsOn1003 = 10,
+NoIncomeOn1003 = 11,
+NoVerificationOfStatedIncomeEmploymentOrAssets =
+12, NoVerificationOfStatedIncomeOrAssests = 13,
+NoVerificationOfStatedAssets = 14,
+NoVerificationOfStatedIncomeOrEmployment = 15,
+NoVerificationOfStatedIncome = 16,
+VerbalVerificationOfEmployment = 17, OnePaystub = 18,
+OnePaystubAndVerbalVerificationOfEmployment = 19,
+OnePaystubAndOneW2AndVerbalVerificationOfEmploym
+entOrOneYear1040 = 20, FullDocumentation12Months =
+21, BankStatementPersonal12Months = 22,
+BankStatementPersonal24Months = 23,
+BankStatementBusiness12Months = 24,
+BankStatementBusiness24Months = 25, AssetUtilization
+= 26, Dscr = 27, TaxReturnsOneYear = 28,
+OtherBankStatements = 29
+Disclosure
+Disclosure > Service providers
+Disclosure > Service providers > Buyer agent details
+name string
+Disclosure > Service providers > Buyer agent > Contacts details
+email string
+mobilePhone string
+workPhone string
+name string
+Disclosure > Service providers > Buyer agent > Address details
+street string
+city string
+LendingPad ® Web API Guide Page 47
+
+state string
+zipCode string
+Disclosure > Service providers > Seller agent details
+name string
+Disclosure > Service providers > Seller agent > Contacts details
+email string
+mobilePhone string
+workPhone string
+name string
+Disclosure > Service providers > Seller agent > Address details
+street string
+city string
+state string
+zipCode string
+Disclosure > Service providers > Closing agent details
+name string
+Disclosure > Service providers > Closing agent > Contacts details
+email string
+mobilePhone string
+workPhone string
+name string
+Disclosure > Service providers > Closing agent > Address details
+street string
+city string
+state string
+zipCode string
+Disclosure > Service providers > Title company details
+name string
+LendingPad ® Web API Guide Page 48
+
+Disclosure > Service providers > Title company > Contacts details
+email string
+mobilePhone string
+workPhone string
+name string
+Disclosure > Service providers > Title company > Address details
+street string
+city string
+state string
+zipCode string
+Disclosure > Service providers > Hazard insurance company details
+name string
+Disclosure > Service providers > Hazard insurance company > Contacts details
+email string
+mobilePhone string
+workPhone string
+name string
+Disclosure > Service providers > Hazard insurance company > Address details
+street string
+city string
+state string
+zipCode string
+Disclosure > Service providers > Appraiser company details
+name string
+Disclosure > Service providers > Appraiser company > Contacts details
+email string
+mobilePhone string
+workPhone string
+LendingPad ® Web API Guide Page 49
+
+name string
+Disclosure > Service providers > Appraiser company > Address details
+street string
+city string
+state string
+zipCode string
+Disclosure > Additional
+documentDate string; ie:"2024-01-04T00:00:00"
+documentSentDate string; ie:"2024-01-04T00:00:00"
+cancelDate string; ie:"2024-01-04T00:00:00"
+Disclosure > Fees
+discountPoints decimal
+appraisalFee decimal
+applicationFee decimal
+creditReportFee decimal
+underwritingFee decimal
+processingFee decimal
+floodCertificationFee decimal
+monthlyFloodInsuranceAmount decimal
+Secondary
+Secondary > Buy
+lockStatus Id-Name object; values: 0=None, 2=Registered, 3=Locked,
+4=Expired, 5=Canceled, 6=Withdrawn, 7=Float,
+8=LockPending, 9=RegisteredManual,
+10=LockPendingManual, 11=LockedManual
+lockPrice double
+totalLockPrice double
+lockPeriod Int; ie: 30 days
+compensationType Id-Name object; values: 1=LenderPaid, 2=BorrowerPaid
+compensationRate double
+LendingPad ® Web API Guide Page 50
+
+compensationAmount decimal
+priceAdjustmentsTotal double
+hedge boolean, ie: true/false
+Secondary > Sell
+lockType Id-Name object; values: 1=Float, 2=BestEffort,
+3=Mandatory, 4=Bulk, 5=Aot, 6=Forward, 7=Negotiated
+lockDate string; ie: "2024-01-04T00:00:00"
+lockExpiredDate string; ie: "2024-01-04T00:00:00"
+basePrice double
+srpPrice double
+finalPrice double
+deliveryByDate string; ie: "2024-01-04T00:00:00"
+loanId string
+purchasedPrincipalAmount decimal
+Secondary > Sell > Investor
+name string
+Secondary > Sell > Investor > Contact Details
+name string
+email string
+mobilePhone string
+workPhone string
+homePhone string
+Secondary > Sell > Investor > Address Details
+street string
+city string
+state string
+zipCode string
+Funding
+finalCdReceived string; ie: "2024-01-04T00:00:00"
+LendingPad ® Web API Guide Page 51
+
+Critical dates
+applicationTaken string; ie: "2018-10-10T00:00:00"
+estimatedClosing string; ie: "2018-10-10T00:00:00"
+preApproval string; ie: "2018-10-10T00:00:00"
+rateLocked string; ie: "2018-10-10T11:13:09"
+lockExpiration string; ie: "2018-10-10T11:13:09"
+approved string; ie: "2018-10-10T11:13:09"
+clearToClose string; ie: "2018-10-10T11:13:09"
+scheduleClosing string; ie: "2018-10-10T00:00:00"
+closed string; ie: "2018-10-10T00:00:00"
+funded string; ie: "2018-10-10T00:00:00"
+withdrawn string; ie: "2018-10-10T11:13:09"
+denied string; ie: "2018-10-10T11:13:09"
+incomplete string; ie: "2018-10-10T11:13:09"
+notAccepted string; ie: "2018-10-10T11:13:09"
+rescinded string; ie: "2018-10-10T11:13:09"
+intentToProceed string; ie: "2018-10-10T00:00:00"
+loanEstimate string; ie: "2018-10-10T00:00:00"
+reDisclosure string; ie: "2018-10-10T00:00:00"
+closingDisclosure string; ie: "2018-10-10T00:00:00"
+closingDisclosureReceived string; ie: "2018-10-10T00:00:00"
+lastModified string; ie: "2018-10-10T11:13:09"
+firstPaymentDate string; ie: "2018-10-10T11:13:09"
+borrowerSubmission string; ie: "2018-10-10T11:13:09"
+brokersRequestForAppraisal string; ie: "2018-10-10T11:13:09"
+loanEstimateExpired string; ie: "2018-10-10T00:00:00"
+rateReLocked string; ie: "2018-10-10T11:13:09"
+servicing string; ie: "2018-10-10T00:00:00"
+LendingPad ® Web API Guide Page 52
+
+purchased string; ie: "2018-10-10T00:00:00"
+inShipping string; ie: "2018-10-10T00:00:00"
+postClosing string; ie: "2018-10-10T00:00:00"
+brokerConditionSubmission string; ie: "2018-10-10T11:13:09"
+conditionSubmission string; ie: "2018-10-10T11:13:09"
+preDeny string; ie: "2018-10-10T11:13:09"
+suspended string; ie: "2018-10-10T11:13:09"
+conditionReviewed string; ie: "2018-10-10T11:13:09"
+processing string; ie: "2018-10-10T11:13:09"
+brokerInitialSubmission string; ie: "2018-10-10T11:13:09"
+initialSubmission string; ie: "2018-10-10T11:13:09"
+registered string; ie: "2018-10-10T11:13:09"
+preQualify string; ie: "2018-10-10T00:00:00"
+created string; ie: "2018-10-10T11:13:09"
+fundingEstimate string; ie: "2018-10-10T11:13:09"
+appraisalContingency string; ie: "2018-10-10T11:13:09"
+financingContingency string; ie: "2018-10-10T11:13:09"
+appraisalExpectedDelivery string; ie: "2018-10-10T11:13:09"
+appraisalInspection string; ie: "2018-10-10T11:13:09"
+loanEstimateDelivered string; ie: "2018-10-10T11:13:09"
+loanEstimateReceived string; ie: "2018-10-10T11:13:09"
+loanEstimateIssuanceDue string; ie: "2018-10-10T11:13:09"
+loanEstimateReDisclosureIssued string; ie: "2018-10-10T11:13:09"
+loanEstimateReDisclosureReceived string; ie: "2018-10-10T11:13:09"
+closingDisclosureDelivered string; ie: "2018-10-10T11:13:09"
+closingDisclosureReDisclosureIssued string; ie: "2018-10-10T11:13:09"
+closingDisclosureReDisclosureReceived string; ie: "2018-10-10T11:13:09"
+eConsent string; ie: "2018-10-10T11:13:09"
+LendingPad ® Web API Guide Page 53
+
+appraisalDelivered string; ie: "2018-10-10T11:13:09"
+surveyDate string; ie: "2018-10-10T11:13:09"
+earliestFeeCollection string; ie: "2018-10-10T11:13:09"
+ssplSent string; ie: "2018-10-10T11:13:09"
+safeHarborSent string; ie: "2018-10-10T11:13:09"
+specialInformationBookletSent string; ie: "2018-10-10T11:13:09"
+abaProvided string; ie: "2018-10-10T11:13:09"
+charmBookletSent string; ie: "2018-10-10T11:13:09"
+helocBrochureSent string; ie: "2018-10-10T11:13:09"
+avmProvided string; ie: "2018-10-10T11:13:09"
+homeCounselingDisclosure string; ie: "2018-10-10T11:13:09"
+highCostDisclosure string; ie: "2018-10-10T11:13:09"
+rightOfRescissionNotice string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates details
+Critical dates > Processing dates > Appraisal details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Condo Questionnaire details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Credit Report details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+LendingPad ® Web API Guide Page 54
+
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Credit Supplement details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Flood Insurance Binder details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Flood Insurance Quote details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Hazard Insurance Binder details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Hazard Insurance Quote details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Initial Disclosure details
+completed boolean
+LendingPad ® Web API Guide Page 55
+
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Master Policy details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > MERS details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > SSA details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Tax Transcripts details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > Title Binder details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+LendingPad ® Web API Guide Page 56
+
+Critical dates > Processing dates > VOE details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > VOM details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Critical dates > Processing dates > VVOE details
+completed boolean
+description string
+receivedDate string; ie: "2018-10-10T11:13:09"
+requestDate string; ie: "2018-10-10T11:13:09"
+Selling Company details (Broker)
+id guid
+nmlsId string
+Buying Company details (Wholesale Lender)
+id guid
+nmlsId string
+loanReferenceId string 3rd party loan
+unique identifier
+Custom fields details
+id guid
+name string
+type Id-Name object; values: Value = 1, Range = 3, List = 4
+valueType Id-Name object; values: String = 1, Boolean = 2, Date = 3,
+Date and Time = 10, Decimal = 4, Percentage = 5, Text =
+6, Guid = 7, Integer = 8, Double = 9
+LendingPad ® Web API Guide Page 57
+
+values string, boolean, double, integer; percentage: { value,
+percents }
+Request Example:
+
+[
+{
+"loanId": "86a6a9d5-41d4-43c5-a156-607140ae033b",
+"companyId": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loanNumber": "R000382",
+"brokerLoanNumber": null,
+"lenderLoanNumber": "null",
+"campaign": {
+"name": "Campaign",
+"id": "8fa35b71-6736-408f-a7ba-1a3329052b89"
+},
+"branch": {
+"name": "Branch",
+"id": "93e3da7c-5bec-4cd2-a8de-de04a87e2ca7"
+},
+"dispositionType": {
+"id": 1,
+"name": "None"
+},
+"channelType": {
+"id": 5,
+"name": "Retail"
+},
+"documentType": {
+"id": 28,
+"name": "1 Year Tax Returns"
+},
+"purpose": {
+"id": 1,
+"name": "Purchase"
+},
+"occupancy": {
+"id": 1,
+"name": "Primary Residence"
+},
+"appraisalValue": 300000,
+"purchasePrice": 300000,
+"loanAmount": 240000,
+"totalLoanAmount": 240000,
+"creditScore": 780,
+"loanType": {
+"id": 1,
+"name": "Conventional"
+},
+"term": 360,
+"noteRate": 5.5,
+"propertyType": {
+"id": 4,
+"name": "Detached"
+},
+"units": 1,
+"otherFinancing": null,
+"apr": 5.5,
+"ltvRatioPercent": 80,
+"combinedLtvRatioPercent": 80,
+"frontDti": 20.964,
+"backDti": 20.964,
+"positiveNetRentalIncome": 0,
+LendingPad ® Web API Guide Page 58
+
+"negativeNetRentalIncome": 0,
+"loanStatus": {
+"id": 4,
+"name": "Application Taken"
+},
+"numberOfTimesLoanInStatus": {
+"4": 1
+},
+"lender": null,
+"broker": null,
+"totalLiquidAssets": 400000,
+"totalLiabilitiesNonReoMonthPaymentAmount": 0,
+"totalLiabilityBalance": 0,
+"proposedHousingExpense": {
+"firstMortgage": 1362.69,
+"otherFinance": 0,
+"hazardInsurance": 0,
+"propertyTax": 0,
+"mortgageInsurance": 0,
+"hoa": 0,
+"other": 0
+},
+"subjectPropertyAddress": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip",
+"county": "County"
+},
+"borrowers": [
+{
+"id": "e0d09726-ecfb-4bd3-9035-f1de2c787387",
+"firstName": "Borrower",
+"lastName": "A",
+"middleName": "MN",
+"currentAddress": {
+"city": "City",
+"state": "VA",
+"street": "Street A",
+"zipCode": "Zip"
+},
+"mailingAddressSameAsSubjectPropertyAddress": false,
+"mailingAddress": {
+"city": "City",
+"state": "VA",
+"street": "Street B",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"homePhone": "1111111111"
+},
+"birthDate": "1966-07-03T00:00:00",
+"ssn": "111111111",
+"coBorrower": {
+"id": "1c4ce4ed-e82f-407a-9874-2b8b8caa4d75",
+"firstName": "CoBorrower",
+"lastName": "B",
+"middleName": null
+},
+"employments": [
+{
+"id": "eff6d32e-3799-4a57-a9dc-850ab662248f",
+LendingPad ® Web API Guide Page 59
+
+"name": "Employment A",
+"position": "Position A",
+"type": {
+"id": 2,
+"name": "Primary"
+},
+"incomes": [
+{
+"type": {
+"id": 1,
+"name": "Base"
+},
+"amount": 1,
+"description": "Base"
+}
+]
+},
+{
+"id": "28d72086-f4dc-4016-a2c6-03071ee195f0",
+"name": "Employment B",
+"position": "Position B",
+"type": {
+"id": 2,
+"name": "Second"
+},
+"incomes": [
+{
+"type": {
+"id": 2,
+"name": "Bonuses"
+},
+"amount": 2,
+"description": "Bonuses"
+}
+]
+}
+],
+"incomes": [
+{
+"type": {
+"id": 24,
+"name": "Other"
+},
+"amount": 3,
+"description": "Other description"
+}
+],
+"creditReportIdentifiers": [
+{
+"identifier": "2224165",
+"name": "CreditReportParty",
+"date": "2022-12-14T00:00:00Z"
+}
+]
+},
+{
+"id": "1c4ce4ed-e82f-407a-9874-2b8b8caa4d75",
+"firstName": "CoBorrower",
+"lastName": "B",
+"middleName": null,
+"coBorrower": null,
+"currentAddress": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+LendingPad ® Web API Guide Page 60
+
+"zipCode": "Zip"
+},
+"mailingAddressSameAsSubjectPropertyAddress": true,
+"mailingAddress": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"homePhone": "1111111111"
+},
+"birthDate": "1966-07-03T00:00:00",
+"ssn": "111111111",
+"employments": [],
+"incomes": [],
+"creditReportIdentifiers": []
+}
+],
+"program": {
+"name": "30 Year Fixed",
+"programType": {
+"id": 1,
+"name": "Conforming"
+},
+"programRateType": {
+"id": 1,
+"name": "Fixed"
+}
+},
+"originator": {
+"organizationName": "Name",
+"organizationAddress": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"organizationNmlsId": "1111111111",
+"name": "FirstName LastName",
+"email": "test@email.com",
+"phone": "2222222222",
+"officerNmlsId": "1111111111"
+},
+"additional": {
+"generalTracking": {
+"lienPositionType": {
+"id": 1,
+"name": "First Lien"
+},
+"escrowWaiver": false,
+"channelType": {
+"id": 5,
+"name": "Retail"
+}
+},
+"hazardInsuranceDetail": {
+"policyNumber": "POLICYNUMBER",
+"policyCoverage": null,
+"annualPremium": null,
+"paidThroughDate": null
+},
+LendingPad ® Web API Guide Page 61
+
+"underwriting": {
+"documentType": null
+}
+},
+"disclosure": {
+"serviceProviders": {
+"buyerAgent": {
+"name": "Name",
+"address": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"name": "Point of Contact"
+}
+},
+"sellerAgent": {
+"name": "Name",
+"address": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"name": "Point of Contact"
+}
+},
+"closingAgent": {
+"name": "Name",
+"address": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"name": "Point of Contact"
+}
+},
+"titleCompany": {
+"name": "Name",
+"address": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"name": "Point of Contact"
+},
+LendingPad ® Web API Guide Page 62
+
+"hazardInsuranceCompany": {
+"name": "Name",
+"address": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"name": "Point of Contact"
+}
+},
+"appraiserCompany": {
+"name": "Name",
+"address": {
+"city": "City",
+"state": "VA",
+"street": "Street",
+"zipCode": "Zip"
+},
+"contacts": {
+"email": "test@email.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"name": "Point of Contact"
+}
+}
+},
+"additional": {
+"documentDate": "2024-01-04T00:00:00",
+"cancelDate": "2024-01-04T00:00:00",
+"documentSentDate": "2024-01-04T00:00:00"
+},
+"fees": {
+"discountPoints": 0,
+"appraisalFee": 20,
+"applicationFee": 10,
+"creditReportFee": 30,
+"underwritingFee": 0,
+"processingFee": 0,
+"floodCertificationFee": 0,
+"monthlyFloodInsuranceAmount": 0
+},
+"lenderCredit": 1000
+},
+"secondary": {
+"buy": {
+"totalLockPrice": 101.2,
+"compensationType": {
+"id": 1,
+"name": "Lender Paid"
+},
+"compensationRate": 1,
+"compensationAmount": 2400,
+"lockPeriod": 30,
+"lockPrice": 101,
+"hedge": false,
+"priceAdjustmentsTotal": 0.2,
+"lockStatus": {
+"id": 3,
+"name": "Locked"
+}
+LendingPad ® Web API Guide Page 63
+
+},
+"sell": {
+"investor": {
+"name": "Investor A",
+"contacts": {
+"name": "POC",
+"email": "some@some",
+"mobilePhone": null,
+"workPhone": null,
+"homePhone": null
+},
+"address": null
+},
+"lockType": {
+"id": 2,
+"name": "Best Effort"
+},
+"lockDate": "2024-01-04T00:00:00",
+"lockExpiredDate": "2024-02-28T00:00:00",
+"basePrice": 1,
+"finalPrice": 3,
+"srpPrice": 2,
+"deliveryByDate": "2024-01-04T00:00:00",
+"loanId": "1234567890",
+"purchasedPrincipalAmount": 50
+}
+},
+"funding": {
+"finalCdReceived": "2024-01-04T00:00:00"
+},
+"dates": {
+"applicationTaken": "2024-01-04T00:00:00",
+"estimatedClosing": null,
+"preApproval": null,
+"rateLocked": "2024-01-04T10:54:46",
+"lockExpiration": "2024-02-03T07:07:41",
+"approved": null,
+"clearToClose": null,
+"scheduleClosing": null,
+"closed": null,
+"funded": null,
+"withdrawn": null,
+"denied": null,
+"incomplete": null,
+"notAccepted": null,
+"rescinded": null,
+"intentToProceed": null,
+"loanEstimate": null,
+"reDisclosure": null,
+"closingDisclosure": null,
+"closingDisclosureReceived": null,
+"firstPaymentDate": null,
+"borrowerSubmission": null,
+"brokersRequestForAppraisal": null,
+"loanEstimateExpired": null,
+"rateReLocked": null,
+"servicing": null,
+"purchased": null,
+"inShipping": null,
+"postClosing": null,
+"brokerConditionSubmission": null,
+"conditionSubmission": null,
+"preDeny": null,
+"suspended": null,
+"conditionReviewed": null,
+LendingPad ® Web API Guide Page 64
+
+"processing": null,
+"brokerInitialSubmission": null,
+"initialSubmission": null,
+"registered": null,
+"preQualify": null,
+"created": "2024-01-04T10:08:16",
+"lastModified": "2024-01-04T11:10:27",
+"fundingEstimate": null,
+"appraisalContingency": null,
+"financingContingency": null,
+"appraisalExpectedDelivery": null,
+"appraisalInspection": null,
+"loanEstimateDelivered": "2024-01-04T00:00:00",
+"loanEstimateReceived": null,
+"loanEstimateIssuanceDue": "2024-01-09T00:00:00",
+"loanEstimateReDisclosureIssued": null,
+"loanEstimateReDisclosureReceived": null,
+"closingDisclosureDelivered": "2024-01-04T00:00:00",
+"closingDisclosureReDisclosureIssued": null,
+"closingDisclosureReDisclosureReceived": null,
+"eConsent": "2024-01-04T00:00:00",
+"appraisalDelivered": "2024-01-04T00:00:00",
+"surveyDate": null,
+"earliestFeeCollection": null,
+"ssplSent": "2024-01-04T00:00:00",
+"safeHarborSent": "2024-01-04T00:00:00",
+"specialInformationBookletSent": null,
+"abaProvided": "2024-01-04T00:00:00",
+"charmBookletSent": null,
+"helocBrochureSent": null,
+"avmProvided": null,
+"homeCounselingDisclosure": null,
+"highCostDisclosure": null,
+"rightOfRescissionNotice": null,
+"stateHighCostCounselingCertificate": null,
+"stateCounselingNoticeSent": null,
+"stateHighCostOrHighRiskOrCoveredDisclosureSent": null,
+"texasMortgageCompanyDisclosureSent": null,
+"texasNoticeOfPenaltiesDisclosureSent": null,
+"texasConsumerDisclosureSent": null,
+"ncHomeLoanAmortizationScheduleSent": null,
+"processingTrackingDates": {
+"appraisal": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"hazardInsuranceQuote": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"hazardInsuranceBinder": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"titleBinder": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+LendingPad ® Web API Guide Page 65
+
+},
+"floodInsuranceQuote": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"floodInsuranceBinder": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"initialDisclosure": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"masterPolicy": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"condoQuestionnaire": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"creditSupplement": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"taxTranscripts": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"ssa": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"vom": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"voe": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"vvoe": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+LendingPad ® Web API Guide Page 66
+
+"requestDate": null
+},
+"creditReport": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"mers": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+},
+"payoff": {
+"completed": false,
+"description": null,
+"receivedDate": null,
+"requestDate": null
+}
+}
+},
+"assignments": {
+"loanAssistant": {
+"name": "FirstName LastName",
+"email": "loan@assistant.com",
+"mobilePhone": null,
+"workPhone": "11111111111111"
+},
+"loanOfficer": {
+"name": "FirstName LastName",
+"email": "loan@officer.com",
+"mobilePhone": null,
+"workPhone": "11111111111111",
+"nmlsId": "1234567"
+},
+"loanProcessor": {
+"name": "FirstName LastName",
+"email": "loan@processor.com",
+"mobilePhone": null,
+"workPhone": "11111111111111"
+},
+"loanUnderwriter": {
+"name": "FirstName LastName",
+"email": "loan@underwriter.com",
+"workPhone": "(111) 111-1111",
+"mobilePhone": "(111) 111-1111"
+},
+"closer": {
+"name": "FirstName LastName",
+"email": "loan@closer.com",
+"workPhone": "",
+"mobilePhone": ""
+},
+"postCloser": {
+"name": "FirstName LastName",
+"email": "loan@closer.com",
+"workPhone": "",
+"mobilePhone": ""
+},
+"funder": {
+"name": "FirstName LastName",
+"email": "loan@closer.com",
+"workPhone": "",
+"mobilePhone": ""
+LendingPad ® Web API Guide Page 67
+
+}
+},
+"notes": [
+{
+"userName": "Firstname Lastname",
+"date": "2021-06-21T11:12:16",
+"message": "This is a test note"
+}
+],
+"sellingCompany": null,
+"buyingCompany": null,
+"integrationPartyCustomFields": null,
+"customFields": [
+{
+"id": "a7d222c0-3192-4f2a-95ed-b016eb30474f",
+"name": "String",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 1,
+"name": "String"
+},
+"values": [
+"String"
+]
+},
+{
+"id": "7f2a31bb-b0bd-4c24-935b-18fd27c66932",
+"name": "Text",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 6,
+"name": "Text"
+},
+"values": [
+"Text"
+]
+},
+{
+"id": "ee2ddd6f-462a-46fd-a37f-9de935ccc73b",
+"name": "Boolean",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 2,
+"name": "Boolean"
+},
+"values": [
+true
+]
+},
+{
+"id": "a4c62b41-63ca-4722-ab72-7cfd139ebbe9",
+"name": "Date",
+"type": {
+"id": 1,
+"name": "Value"
+},
+LendingPad ® Web API Guide Page 68
+
+"valueType": {
+"id": 3,
+"name": "Date"
+},
+"values": [
+"2021-01-02T00:00:00Z"
+]
+},
+{
+"id": "b4c62b41-63ca-4722-ab72-7cfd139ebbe9",
+"name": "Date and Time",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 10,
+"name": "Date And Time"
+},
+"values": [
+"2022-07-13T16:14:33Z"
+]
+},
+{
+"id": "e390c3d4-809d-4fb3-b693-375cb934dcbc",
+"name": "Decimal",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 4,
+"name": "Decimal"
+},
+"values": [
+1.23
+]
+},
+{
+"id": "a6e08099-71b8-4530-bedc-8c3e964d1dc1",
+"name": "Double",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 9,
+"name": "Double"
+},
+"values": [
+1.11
+]
+},
+{
+"id": "0ff9484f-e38c-490a-8767-6e29640de67b",
+"name": "Integer",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 8,
+"name": "Integer"
+},
+"values": [
+LendingPad ® Web API Guide Page 69
+
+1
+]
+},
+{
+"id": "8997a7f0-83dd-4be2-abed-a2e177cf6b26",
+"name": "Percentage",
+"type": {
+"id": 1,
+"name": "Value"
+},
+"valueType": {
+"id": 5,
+"name": "Percentage"
+},
+"values": [
+{
+"value": 0.01234,
+"percents": 1.234
+}
+]
+},
+{
+"id": "1badad81-049c-447e-91f2-5567025e71af",
+"name": "List (single selection)",
+"type": {
+"id": 4,
+"name": "List"
+},
+"valueType": {
+"id": 1,
+"name": "String"
+},
+"values": [
+"B"
+]
+},
+{
+"id": "e10f7782-e986-4964-9431-8748ab23e702",
+"name": "List (multiple selection)",
+"type": {
+"id": 4,
+"name": "List"
+},
+"valueType": {
+"id": 1,
+"name": "String"
+},
+"values": [
+"B",
+"D"
+]
+},
+{
+"id": "15780169-8c46-4cab-8756-2729a7d30d57",
+"name": "Range - Percentage",
+"type": {
+"id": 3,
+"name": "Range"
+},
+"valueType": {
+"id": 5,
+"name": "Percentage"
+},
+"values": [
+{
+LendingPad ® Web API Guide Page 70
+
+"value": 0.1,
+"percents": 10
+},
+{
+"value": 0.2,
+"percents": 20
+}
+]
+},
+{
+"id": "2ea50d93-220a-4634-b368-f863e22c616c",
+"name": "Range - Decimal",
+"type": {
+"id": 3,
+"name": "Range"
+},
+"valueType": {
+"id": 4,
+"name": "Decimal"
+},
+"values": [
+1.99,
+2.99
+] } ] } } ]
+LendingPad ® Web API Guide Page 71
+
+Export Loan Document API Request
+The system sends the loan document that contains file and key parameters to 3rd-party servers.
+
+Please create a method that can handle the multipart form data request from the LendingPad.
+
+Please provide the URL and basic authorization information.
+
+The POST method should return status code 200 in response if the request headers contain
+
+‘X-TEST’ header. The request with this header is a test request that includes the sample data
+
+the 3rd party should not handle. LendingPad uses this type of request to validate the connection
+
+between the LendingPad and the 3rd party is active.
+
+Data Model
+
+Field Type, Supported Values Description
+
+loanId guid LendingPad provides it in a register
+loan request
+loanDocumentId guid
+name string
+effectiveDate string; ie: "1980-01-01T00:00:00"
+createdDate string; ie: "1980-01-01T16:15:12"
+Type details
+id integer; values: 1=Other, 2=CreditReport,
+3=FloodReport, 4=AUSFindings, 5=VVOE,
+6=MICertificate, 7=TaxTranscript,
+8=CreditReportGapReport, 9=IMLQ,
+10=FraudReport, 11=4506T, 12=Appraisal,
+13=AdverseActionStatement,
+14=CreditPackage, 15=UCDFindings,
+16=ClosingDisclosure, 17=LockConfirmation,
+18=TitleIntegration, 19=EarlyCheckFindings,
+20=UnderwritingApproval,
+21=ESignedDocuments,
+22=AssetVerification,
+23=ConsumerUploaded,
+24=ComplianceAudit, 25=DisclosureFee,
+26=IDVerification, 27=BorrowerAuthorization,
+28=VOE, 29=SSA-89,
+30=IntegrationPartyUploaded, 31=SSR,
+32=DisclosureDocument,
+33=InitialDisclosures
+LendingPad ® Web API Guide Page 72
+
+name string
+Selling Company details (Broker)
+id guid
+nmlsId string
+Buying Company details (Wholesale Lender)
+id guid
+nmlsId string
+loanReferenceId string 3rd party loan unique identifier
+conditionReferenceIds list of reference ids 3rd party condition unique
+identifiers
+Request Example:
+
+loanId = "35005483-32c3-4d7b-864a-3679af489ecc"
+loanDocumentId= "11115483-32c3-4d7b-864a-3679af489ecc"
+name = "Loan Document Sample"
+effectiveDate = "2023-08-01T00:00:00"
+createdDate = "2023-07-15T16:34:07"
+type.id = 14
+type.name = "Credit Package"
+sellingCompany.id = "7ff28005-58b0-4584-9f13-109ee0d0c2ad"
+sellingCompany.nmlsId = "12345678"
+buyingCompany.id = "1aa28005-58b0-4584-9f13-109ee0d0c3ac"
+buyingCompany.nmlsId = "23456789"
+buyingCompany.loanReferenceId = "a67f3df1-9292-44ee-9a39-09029495b664"
+buyingCompany.conditionReferenceIds[0] = "ReferenceID-A"
+buyingCompany.conditionReferenceIds[1] = "ReferenceID-B"
+LendingPad ® Web API Guide Page 73
+
+Export Standard File API Request
+GET
+
+/integrations/export/loan/file?contact=&company=&loan=&type=<ty
+
+pe>
+
+With this request, we will export a loan for you in different file standards. Please check out `input
+
+params` for what must be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid
+type Yes integer; values: 1=FNM 3.2; 2=MISMO 2.3.1; 3=MISMO 2.4;
+4=MISMO 2.6; 5=MISMO 3.3.1; 6= ULDD FNM; 7=ULDD FRE;
+8=UCD FRE; 10=UCD FNM; 9=MISMO 3 Closing; 13=MISMO
+3.4 Closing; 11=MISMO 3.4 FNM; 12=MISMO 3.4 FRE
+LendingPad ® Web API Guide Page 74
+
+LendingPad ® Web API Guide Page 75
+
+Get Loans API Request
+GET /integrations/list/loans?contact=&company=&user=
+
+With this request, we will export the list of loans (in a batch of up to 25 loans) for you. Please
+
+check out input params for what must be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+user Yes guid LendingPad will provide
+loanOfficer No string
+lender No string
+borrower No string
+loanType No integer; values: 1=Conventional, 2=FHA, 3=VA,
+4=USDARuralHousing, 8=Other, 7=HELOC, 9=HELOAN
+purpose No Integer; values: 1=Purchase, 2=CashOutRefinance,
+3=NoCashOutRefinance, 4=Construction,
+5=ConstructionPermanent, 6=Other
+status No Integer; values: Lead = 1, Processing = 33, Pre Qualify = 2,
+Registered = 32, Pre Approval = 3, Application Taken = 4,
+Broker Initial Submission = 30, Prospect = 27, Initial
+Submission = 22, Approved = 24, Suspended = 25, Pre Deny =
+28, Broker Condition Submission = 31, Condition Submission =
+23, Clear To Close = 26, Denied = 18, Withdrawn = 19, Not
+Accepted = 20, Incomplete = 21, Rescinded = 29, Closed = 12,
+Funded = 13, Post Closing = 14, In Shipping = 15, Purchased =
+17, Servicing = 16
+state No string
+skip No int
+take Yes Int; Range 1-25
+Data Model
+
+Field Type, Supported Values Description
+
+LendingPad ® Web API Guide Page 76
+
+Id guid Loan Identifier
+loanNumber string
+occupancy Id-Name object; values: 1=Primary Residence, 2=Second
+Home, 3=Investment, 4=Other
+purpose Id-Name object; values: 1=Purchase, 2=Cash Out Refinance,
+3=No Cash Out Refinance, 4=Construction, 5=Construction
+Permanent, 6=Other
+appraisalValue decimal
+totalLoanAmount decimal
+creditScore int
+loanType Id-Name object; values: 1=Conventional, 2=FHA, 3=VA,
+4=USDA Rural Housing, 8=Other
+loanStatus Id-Name object; values: Lead = 1, Processing = 33, Pre
+Qualify = 2, Registered = 32, Pre Approval = 3, Application
+Taken = 4, Broker Initial Submission = 30, Prospect = 27,
+Initial Submission = 22, Approved = 24, Suspended = 25, Pre
+Deny = 28, Broker Condition Submission = 31, Condition
+Submission = 23, Clear To Close = 26, Denied = 18,
+Withdrawn = 19, Not Accepted = 20, Incomplete = 21,
+Rescinded = 29, Closed = 12, Funded = 13, Post Closing = 14,
+In Shipping = 15, Purchased = 17, Servicing = 16
+loanStatusDate string; ie: "2018-10-10T11:13:09"
+loanTerm int, nullable
+borrowersTotalIncomeAmount decimal
+estimatedClosingDate string; ie: "2018-10-10T11:13:09"
+Subject property address details
+street string
+city string
+state string; state abbreviation, ie: "VA"
+zipCode string
+county string
+Borrower details
+id guid
+firstName string
+LendingPad ® Web API Guide Page 77
+
+middleName string
+lastName string
+Borrower > Latest credit report identifiers
+identifier string
+name string Credit report provider
+name
+date string; ie: "2018-10-10T11:13:09" Credit report issue date
+Successful Response Example:
+
+{
+"totalRecords": 1,
+"data": [
+{
+"id": "4598b1f0-b115-43d7-ab65-e9ee5ada745f",
+"loanNumber": "030431",
+"purpose": {
+"id": 2,
+"name": "Cash Out Refinance"
+},
+"loanType": {
+"id": 1,
+"name": "Conventional"
+},
+"totalLoanAmount": 500000.0,
+"creditScore": 0,
+"loanTerm": null,
+"appraisalValue": 500000.0,
+"borrowersTotalIncomeAmount": 0.0,
+"estimatedClosingDate": null,
+"occupancy": {
+"id": 1,
+"name": "Primary Residence"
+},
+"loanStatus": {
+"id": 27,
+"name": "Prospect"
+},
+"loanStatusDate": "2022-12-07T00:00:00Z",
+"borrowers": [
+{
+"id": "ffa60a88-d044-433d-aac9-eca09443ec9a",
+"firstName": "Borrower",
+"lastName": "A",
+"middleName": null,
+"latestCreditReportIdentifier": {
+"identifier": "2224165",
+"name": "CreditReportParty",
+"date": "2022-12-14T00:00:00Z"
+},
+"coBorrower": "cbae653c-02f1-4cd9-bb6c-3f6f452e7053"
+}, {
+"id": "cbae653c-02f1-4cd9-bb6c-3f6f452e7053",
+"firstName": "Borrower",
+"lastName": "B",
+"middleName": null,
+"latestCreditReportIdentifier": null,
+LendingPad ® Web API Guide Page 78
+
+"coBorrower": null
+}
+],
+"subjectPropertyAddress": {
+"county": "Warren",
+"city": "Hackettstown",
+"state": "NJ",
+"street": "124 Main Street",
+"zipCode": "07840"
+}
+}
+]
+}
+LendingPad ® Web API Guide Page 79
+
+Get Loan Documents API Request
+GET /integrations/loans/documents?contact=&company=&loan=
+
+With this request, we will return the list of loan documents for you. Please check out `input
+
+params` for what must be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+creationPeriod No string, ie: “yyyyMMdd-yyyyMMdd”
+status No int; values: Unfinalized = 1, Finalized = 3, Archived = 4
+Data Model
+
+Field Type, Supported Values Description
+
+id guid
+name string
+createdDate string; ie: "2018-10-10T11:13:09"
+effectiveDate string; ie: "2018-10-10T00:00:00"
+status Id-Name object; values: Unfinalized = 1, Finalized = 3,
+Archived = 4
+finalizedBy User object (Name,Email)
+description string
+Conditions details
+id guid LendingPad condition
+identifier
+referenceId string 3rd party condition unique
+identifier
+Type details
+LendingPad ® Web API Guide Page 80
+
+name string
+type Id-Name object;; values: Other = 1, CreditReport = 2,
+FloodReport = 3, AusFindings = 4, Vvoe = 5, MiCertificate = 6,
+TaxTranscript = 7, CreditReportGapReport = 8, Imlq = 9,
+FraudReport = 10, _4506T = 11, Appraisal = 12,
+AdverseActionStatement = 13, CreditPackage = 14,
+UcdFindings = 15, ClosingDisclosure = 16, LockConfirmation
+= 17, TitleIntegration = 18, EarlyCheckFindings = 19,
+UnderwritingApproval = 20, ESignedDocuments = 21,
+AssetVerification = 22, ConsumerUploaded = 23,
+ComplianceAudit = 24, DisclosureFee = 25, IdVerification =
+26, BorrowerAuthorization = 27, Voe = 28, Ssa89 = 29,
+IntegrationPartyUploaded = 30, Ssr = 31,
+DisclosureDocument = 32, InitialDisclosures = 33Other = 1,
+CreditReport = 2, FloodReport = 3, AusFindings = 4, Vvoe = 5,
+MiCertificate = 6, TaxTranscript = 7, CreditReportGapReport
+= 8, Imlq = 9, FraudReport = 10, _4506T = 11, Appraisal = 12,
+AdverseActionStatement = 13, CreditPackage = 14,
+UcdFindings = 15, ClosingDisclosure = 16, LockConfirmation
+= 17, TitleIntegration = 18, EarlyCheckFindings = 19,
+UnderwritingApproval = 20, ESignedDocuments = 21,
+AssetVerification = 22, ConsumerUploaded = 23,
+ComplianceAudit = 24, DisclosureFee = 25, IdVerification =
+26, BorrowerAuthorization = 27, Voe = 28, Ssa89 = 29,
+IntegrationPartyUploaded = 30, Ssr = 31,
+DisclosureDocument = 32, InitialDisclosures = 33
+Successful Response Example:
+
+[
+{
+"id": "2393b4ac-d6e7-4536-afe9-304c2aa8ac67",
+"name": "pdf-sample",
+"createdDate": "2024-08-09T10:44:05Z",
+"effectiveDate": "2024-08-09T00:00:00Z",
+"status": {
+"id": 1,
+"name": "Unfinalized"
+},
+"type": {
+"name": "Loan Document Type Name",
+"type": {
+"id": 1,
+"name": "Other"
+}
+},
+"finalizedBy": null,
+"description": "Sample Description",
+"conditions": []
+}
+]
+LendingPad ® Web API Guide Page 81
+
+Get Loan Document File API Request
+GET
+
+/integrations/loans/documents/file?contact=&company=&loan=&do
+
+cument=
+
+With this request, we will return the loan document file stream for you. Please check out `input
+
+params` for what must be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides it in
+a loan import response
+document Yes guid
+LendingPad ® Web API Guide Page 82
+
+Delete Loan Document API Request
+POST /integrations/loans/documents/delete/
+
+With this request, we will delete the loan document in an existing loan for you in our system.
+
+Please check out input params for what must be provided and what can be provided.
+
+Input Parameters
+
+Field Required Type, Supported Values Description
+
+contact Yes guid LendingPad will provide
+company Yes guid LendingPad will provide
+loan Yes guid LendingPad provides
+document Yes guid LendingPad provides
+Typical request Example:
+
+{
+"contact": "3a239eb4-025d-45a7-8015-f177534c0e15",
+"company": "7ff28005-58b0-4584-9f13-109ee0d0c2ad",
+"loan": "677e2fca-a27f-47cd-aad2-ee6585d52fb1",
+“document” : “653fd7a7-7466-4fb9-8097-72d95a3e3228”
+}
+Successful Response Example:
+
+{
+"id": "a67f3df1-9292-44ee-9a39-09029495b664",
+"status": {
+"code": 1,
+"name": "Success",
+"description": null
+}
+}
+Unsuccessful Response Example:
+
+{
+"id": null,
+"status": {
+"code": 2,
+"name": "Error",
+"description": "Error message description"
+}
+}
+LendingPad ® Web API Guide Page 83
+
+Revision History
+Version 2025-01
+
+1. The delete loan document API request was added
+
+Version 2024-08
+
+The get loan conditions API request was added.
+The export loan conditions API request was added.
+The get loan documents API request was added.
+The get loan document file API request was added.
+These are the new properties that were added to the export loan API request:
+● Assignments - Post Closer- Name, Email, Work Phone & Mobile Phone
+● Assignments - Funder- Name, Email, Work Phone & Mobile Phone
+● Loan Additional Hazard Insurance Detail - Policy Number, Policy Coverage,
+Annual Premium, Paid Through Date
+● Monthly Flood Insurance Amount, Mailing Address, Mailing Address Same As
+Subject Property Address
+Version 2024-03
+
+The export loan document API request was added.
+Version 2024-01
+
+These are the new properties that were added to the export loan API request:
+● Assignments - Loan Underwriter- Name, Email, Work Phone & Mobile Phone
+● Assignments - Closer - Name, Email, Work Phone & Mobile Phone
+● Branch - Id and Name
+● Campaign - Id and Name
+● Disclosure Additional - Document Date, Document Sent Date, Cancel Date
+● Disclosure Fees - Discount Points, Underwriting Fee, Processing Fee, Flood
+Certification Fee, Application Fee, Appraisal Fee, Credit Report Fee
+● Secondary Buy - Lock Status, Lock Price, Total Lock Price, Lock Period,
+Compensation Type, Compensation Rate, Compensation Amount, Hedge, Price
+Adjustments Total
+● Secondary Sell - LockType, Lock Date, Lock Expired Date, Base Price, Final
+Price, SRP Price, Delivery By Date, Loan Id, Purchased Principal Amount
+● Funding - Final CD Received
+● Critical Dates - LE Delivered, LE Received, LE Issuance Due, LE Re-Disclosure
+Issued, LE Re-Disclosure Received, CD Delivered, CD Re-Disclosure Issued, CD
+Re-Disclosure Received, e-Consent, Appraisal Delivered, Survey Date, Earliest Fee
+Collection, SSPL Sent, Safe Harbor Sent, Special Information Booklet Sent, ABA
+Provided, Charm Booklet Sent, HELOC Brochure Sent, AVM Provided, Home
+Counseling Disclosure, High-Cost Disclosure, Right of Rescission Notice
+LendingPad ® Web API Guide Page 84
+
+● Lender Credit, Front DTI, Back DTI, Positive Net Rental Income, Negative Net
+Rental Income, Disposition Type, Channel Type, Document Type, Number of Times
+Loan in Status
+Update Loan API: Added new fields (Occupancy, Purpose, Appraisal Value, Purchase
+Price, Loan Amount, Loan Type, Note Rate, Property Type, Escrow Waiver, Subject Property
+
+Address, and Custom Fields)
+
+Version 2023-11
+
+The import loan conditions API endpoint was added.
+The update loan conditions API endpoint was added.
+The delete loan conditions API endpoint was added.
+The update loan API endpoint was added.
+Version 2023-04
+
+The new optional query parameters were added to the get loans web API endpoint.
+Version 2023-03
+
+These are the new properties that were added to the import loan API request:
+a. Loan Assistant
+b. Loan Officer
+c. Loan Processor
+These are the new properties that were added to the export loan API request:
+a. Total loan amount
+b. Broker loan number
+c. Lender loan number
+These properties were removed from the import loan API requests:
+a. officer
+b. officerEmail
+c. officerNmlsId
+Version 2023-02
+
+The get loans web API endpoint was added.
+The export loan with a different standard files web API endpoint was added.
+Version 2023-01
+
+These are the new properties that were added to the export loan API request:
+● Borrower:
+○ Id
+○ Credit report identifiers
+○ Co-Borrower
+● Co-Borrower:
+○ Id
+○ Credit report identifiers
+LendingPad ® Web API Guide Page 85
+
+● Borrowers
+
+Version 2022-10
+
+The update loan with FNM 3.2 or MISMO 3.4 URLA file web API endpoint was added.
+Version 2022-05
+
+The point of contact (name) property was added to the disclosure provider to the export
+loan API request.
+Version 2022-04
+
+MISMO 3.4 and FNM 3.2. extensions were added to the loan import.
+Version 2021-10
+
+The import loan notes web API endpoint was added.
+Version 2021-07
+
+These are the new properties that were added to the import loan API request:
+● Note
+● Creator Email
+● Custom Fields
+● Borrower / Co-Borrower - Employment and Non-employment Income
+These are the new properties that were added to the export loan API request:
+● Subject Property - County
+● Notes - User name, Date, Message
+● Custom Fields
+● Borrower / Co-Borrower - Employment and Non-employment Income
+Version 2021-05
+
+The loan channel property was added to the import loan API request.
+Version 2021-02
+
+The import loan with MISMO 3.4 URLA file web API endpoint was added.
+Version 2020-08
+
+These are the new properties that were added to the export loan API request:
+● Loan Officer - Work Phone & Mobile Phone
+● Assignments - Loan Assistant - Name, Email, Work Phone & Mobile Phone
+● Assignments - Loan Officer - Name, Email, Work Phone & Mobile Phone
+● Assignments - Loan Processor - Name, Email, Work Phone & Mobile Phone
+Version 2020-07
+
+These are the new properties that were added to the export loan API request:
+● Funding Estimate
+LendingPad ® Web API Guide Page 86
+
+● Appraisal Contingency
+● Financing Contingency
+● Appraisal Expected Delivery
+● Appraisal Inspection
+● Processing Tracking Dates
+Version 2020-04
+
+The import loan with FNM 3.2 file web API endpoint was added.
+The import loan document API endpoint was added.
+Version 2019-07
+
+These are the new properties that were added to the import loan API request:
+● Borrower SSN and Birth Date
+● Co-Borrower
+● Program
+● LTV
+● CLTV
+● Proposed House Expenses
+The import loan API response was changed. The status property was added.
+The format of the Application Taken date in the import loan API request was changed to
+“MM/dd/yyyy”.

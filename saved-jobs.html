@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved jobs — QuestRock Credit Intake</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --qr-navy: #132238;
+            --qr-navy-mid: #1a2f4a;
+            --qr-orange: #f26722;
+            --qr-orange-hover: #d95a1c;
+            --qr-bg-top: #fdfaf3;
+            --qr-bg-bot: #f0ebe3;
+            --qr-text: #2c3544;
+            --qr-muted: #6b7280;
+            --qr-line: #e5e7eb;
+            --qr-radius: 10px;
+            --qr-radius-card: 20px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, var(--qr-bg-top) 0%, var(--qr-bg-bot) 100%);
+            color: var(--qr-text);
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+        }
+        .page { max-width: 880px; margin: 0 auto; }
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .top-bar h1 {
+            font-size: clamp(1.25rem, 3.5vw, 1.6rem);
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--qr-navy);
+        }
+        .nav-links { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--qr-navy-mid);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            font-family: inherit;
+        }
+        .btn-link:hover { color: var(--qr-orange); }
+        a.btn-link { display: inline; }
+
+        .shell {
+            background: #fff;
+            border-radius: var(--qr-radius-card);
+            box-shadow: 0 24px 48px rgba(19, 34, 56, 0.1), 0 4px 12px rgba(19, 34, 56, 0.05);
+            overflow: hidden;
+        }
+        .shell-inner { padding: 28px 24px 32px; }
+
+        .auth-gate {
+            max-width: 400px;
+            margin: 48px auto;
+            padding: 28px;
+            background: #fff;
+            border-radius: var(--qr-radius-card);
+            box-shadow: 0 16px 40px rgba(19, 34, 56, 0.1);
+        }
+        .auth-gate h2 { font-size: 1.35rem; color: var(--qr-navy); margin-bottom: 8px; }
+        .auth-gate .sub { font-size: 14px; color: var(--qr-muted); margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--qr-navy-mid); }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--qr-radius);
+            border: 1px solid var(--qr-line);
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .btn-primary {
+            width: 100%;
+            margin-top: 8px;
+            padding: 12px;
+            border: none;
+            border-radius: var(--qr-radius);
+            background: var(--qr-orange);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: var(--qr-orange-hover); }
+        .auth-error { color: #b91c1c; font-size: 13px; margin-top: 10px; min-height: 1.2em; }
+
+        .list-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .list-header h2 { font-size: 18px; font-weight: 700; color: var(--qr-navy); }
+        .list-header p { font-size: 13px; color: var(--qr-muted); }
+
+        .job-list { display: flex; flex-direction: column; gap: 10px; }
+        .job-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 18px;
+            border: 1px solid var(--qr-line);
+            border-radius: var(--qr-radius);
+            background: #fafbfc;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+        .job-row:hover {
+            background: #f0f4ff;
+            border-color: #c7d2fe;
+            box-shadow: 0 4px 14px rgba(19, 34, 56, 0.06);
+        }
+        .job-row-main {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 6px 10px;
+            min-width: 0;
+            flex: 1;
+        }
+        .job-borrower { font-weight: 700; font-size: 15px; color: var(--qr-navy); }
+        .job-sep { color: var(--qr-muted); font-weight: 500; }
+        .job-lo { font-size: 14px; font-weight: 600; color: #3d4f6f; }
+        .job-kind {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--qr-orange);
+            background: rgba(242, 103, 34, 0.12);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .job-when {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--qr-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 20px;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--qr-line);
+            font-size: 13px;
+        }
+        .detail-meta span { color: var(--qr-muted); }
+        .detail-meta strong { color: var(--qr-navy); font-weight: 600; }
+
+        .analysis-prose {
+            font-size: 15px;
+            line-height: 1.65;
+            color: #1e293b;
+            max-width: 100%;
+        }
+        .analysis-prose h1, .analysis-prose h2, .analysis-prose h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--qr-navy);
+            margin: 1.4em 0 0.55em;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .analysis-prose h1 { font-size: 1.35rem; }
+        .analysis-prose h2 { font-size: 1.2rem; border-bottom: 2px solid var(--qr-orange); padding-bottom: 0.25em; }
+        .analysis-prose h3 { font-size: 1.05rem; }
+        .analysis-prose p { margin: 0.65em 0; }
+        .analysis-prose ul, .analysis-prose ol { margin: 0.65em 0 0.65em 1.25em; }
+        .analysis-prose li { margin: 0.35em 0; }
+        .analysis-prose hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--qr-line), transparent);
+            margin: 1.75em 0;
+        }
+        .analysis-prose strong { color: var(--qr-navy); font-weight: 700; }
+        .analysis-prose blockquote {
+            margin: 1em 0;
+            padding: 12px 16px;
+            border-left: 4px solid var(--qr-orange);
+            background: #fff9f5;
+            border-radius: 0 var(--qr-radius) var(--qr-radius) 0;
+            color: #334155;
+        }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--qr-muted); font-size: 14px; }
+        .loading { text-align: center; padding: 48px 20px; color: var(--qr-muted); font-weight: 600; }
+
+        .back-row { margin-bottom: 20px; }
+        #appBootstrap {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, var(--qr-bg-top) 0%, var(--qr-bg-bot) 100%);
+            font-weight: 600;
+            color: var(--qr-muted);
+        }
+        #appBootstrap[hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+<div id="appBootstrap">Loading…</div>
+
+<div id="authGate" class="auth-gate" hidden>
+    <h2>Sign in</h2>
+    <p class="sub">View saved QuestRock analyses.</p>
+    <div class="form-group">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" autocomplete="username" value="arashid@questrock.com">
+    </div>
+    <div class="form-group">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" autocomplete="current-password" placeholder="Password">
+    </div>
+    <button type="button" class="btn-primary" id="authSignInBtn" onclick="signIn()">Sign in</button>
+    <p class="auth-error" id="authError" role="alert"></p>
+</div>
+
+<div id="mainApp" class="page" hidden>
+    <div class="top-bar">
+        <h1>Saved jobs</h1>
+        <nav class="nav-links">
+            <a class="btn-link" href="/">← Intake form</a>
+            <button type="button" class="btn-link" id="signOutBtn" onclick="signOut()">Sign out</button>
+        </nav>
+    </div>
+
+    <div class="shell">
+        <div class="shell-inner">
+            <div id="listView" hidden>
+                <div class="list-header">
+                    <h2>Your runs</h2>
+                    <p>Preview &amp; submit analyses</p>
+                </div>
+                <div id="jobListMount" class="job-list"></div>
+            </div>
+            <div id="detailView" hidden>
+                <div class="back-row">
+                    <a class="btn-link" href="/saved-jobs" id="backToList">← All saved jobs</a>
+                </div>
+                <div class="detail-meta" id="detailMeta"></div>
+                <article class="analysis-prose" id="analysisMount"></article>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = '/api';
+let supabaseClient = null;
+let supabaseConfigured = false;
+
+function jobsBasePath() {
+    if (location.pathname.endsWith('/saved-jobs')) return '/saved-jobs';
+    if (location.pathname.endsWith('saved-jobs.html')) {
+        const i = location.pathname.lastIndexOf('/');
+        return location.pathname.slice(0, i + 1) + 'saved-jobs.html';
+    }
+    return '/saved-jobs';
+}
+
+function jobDetailHref(id) {
+    const base = jobsBasePath();
+    const sep = base.includes('?') ? '&' : '?';
+    return base + sep + 'id=' + encodeURIComponent(id);
+}
+
+async function apiCall(action, data) {
+    const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, data })
+    });
+    const text = await res.text();
+    let json;
+    try {
+        json = JSON.parse(text);
+    } catch {
+        throw new Error(res.ok ? 'Invalid JSON from server' : `Server error ${res.status}`);
+    }
+    if (!json.success) throw new Error(json.error || 'API call failed');
+    return json;
+}
+
+async function loadSupabaseModule() {
+    const mod = await import('https://esm.sh/@supabase/supabase-js@2.49.8');
+    return mod.createClient;
+}
+
+async function initSupabase() {
+    const cfg = await apiCall('getClientConfig', {});
+    supabaseConfigured = Boolean(cfg.supabaseConfigured && cfg.supabaseUrl && cfg.supabaseAnonKey);
+    if (!supabaseConfigured) throw new Error('Supabase is not configured on this server (.env).');
+    const createClient = await loadSupabaseModule();
+    supabaseClient = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+}
+
+function loNameFromFormData(fd) {
+    if (!fd || typeof fd !== 'object') return '—';
+    const n = fd.lendingPadUserName;
+    return typeof n === 'string' && n.trim() ? n.trim() : '—';
+}
+
+function formatWhen(iso) {
+    if (!iso) return '—';
+    try {
+        return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    } catch (_) {
+        return String(iso);
+    }
+}
+
+async function renderMarkdownToElement(el, text) {
+    const raw = typeof text === 'string' ? text : '';
+    const { marked } = await import('https://esm.sh/marked@12.0.2');
+    marked.setOptions({ gfm: true, breaks: true });
+    const parsed = marked.parse(raw);
+    const html = typeof parsed === 'string' ? parsed : await parsed;
+    let clean = html;
+    try {
+        const { default: DOMPurify } = await import('https://esm.sh/dompurify@3.1.7');
+        clean = DOMPurify.sanitize(html);
+    } catch (_) {
+        /* fallback: minimal strip */
+        clean = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+    }
+    el.innerHTML = clean;
+}
+
+function setViews({ list, detail }) {
+    document.getElementById('listView').hidden = !list;
+    document.getElementById('detailView').hidden = !detail;
+}
+
+async function loadList() {
+    const mount = document.getElementById('jobListMount');
+    mount.innerHTML = '<p class="loading">Loading…</p>';
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        mount.innerHTML = '<p class="empty-state">Not signed in.</p>';
+        return;
+    }
+    const { data, error } = await supabaseClient
+        .from('jobs')
+        .select('id, borrower_name, kind, created_at, form_data')
+        .order('created_at', { ascending: false })
+        .limit(80);
+    if (error) {
+        mount.innerHTML = '<p class="empty-state">' + error.message + '</p>';
+        return;
+    }
+    mount.innerHTML = '';
+    if (!data || !data.length) {
+        mount.innerHTML = '<p class="empty-state">No saved jobs yet. Run a preview or submit from the intake form.</p>';
+        return;
+    }
+    data.forEach((row) => {
+        const a = document.createElement('a');
+        a.className = 'job-row';
+        a.href = jobDetailHref(row.id);
+        const borrower = row.borrower_name || '—';
+        const lo = loNameFromFormData(row.form_data);
+        const kind = row.kind === 'submit' ? 'Submit' : 'Preview';
+        const main = document.createElement('div');
+        main.className = 'job-row-main';
+        main.innerHTML =
+            '<span class="job-borrower"></span><span class="job-sep">·</span><span class="job-lo"></span><span class="job-kind"></span>';
+        main.querySelector('.job-borrower').textContent = borrower;
+        main.querySelector('.job-lo').textContent = lo;
+        main.querySelector('.job-kind').textContent = kind;
+        const when = document.createElement('time');
+        when.className = 'job-when';
+        when.dateTime = row.created_at || '';
+        when.textContent = formatWhen(row.created_at);
+        a.appendChild(main);
+        a.appendChild(when);
+        mount.appendChild(a);
+    });
+}
+
+async function loadDetail(id) {
+    const meta = document.getElementById('detailMeta');
+    const art = document.getElementById('analysisMount');
+    meta.innerHTML = '<span>Loading…</span>';
+    art.innerHTML = '';
+    const { data, error } = await supabaseClient
+        .from('jobs')
+        .select('borrower_name, kind, created_at, form_data, ai_analysis')
+        .eq('id', id)
+        .maybeSingle();
+    if (error || !data) {
+        meta.innerHTML = '<span>' + (error ? error.message : 'Not found.') + '</span>';
+        await renderMarkdownToElement(art, '');
+        return;
+    }
+    const lo = loNameFromFormData(data.form_data);
+    const borrower = data.borrower_name || '—';
+    const kind = data.kind === 'submit' ? 'Submit' : 'Preview';
+    meta.innerHTML =
+        '<div><span>Borrower </span><strong></strong></div><div><span>Loan officer </span><strong></strong></div><div><span>Type </span><strong></strong></div><div><span>Saved </span><strong></strong></div>';
+    const strongs = meta.querySelectorAll('strong');
+    strongs[0].textContent = borrower;
+    strongs[1].textContent = lo;
+    strongs[2].textContent = kind;
+    strongs[3].textContent = formatWhen(data.created_at);
+    const text = typeof data.ai_analysis === 'string' ? data.ai_analysis : '';
+    await renderMarkdownToElement(art, text.trim() ? text : '_No analysis text stored._');
+}
+
+async function signIn() {
+    const err = document.getElementById('authError');
+    err.textContent = '';
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const btn = document.getElementById('authSignInBtn');
+    btn.disabled = true;
+    try {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await route();
+    } catch (e) {
+        err.textContent = e.message || String(e);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function signOut() {
+    await supabaseClient.auth.signOut({ scope: 'local' });
+    showGate();
+}
+
+function showGate() {
+    document.getElementById('authGate').hidden = false;
+    document.getElementById('mainApp').hidden = true;
+}
+
+function showApp() {
+    document.getElementById('authGate').hidden = true;
+    document.getElementById('mainApp').hidden = false;
+}
+
+async function route() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const back = document.getElementById('backToList');
+    if (back) back.href = jobsBasePath();
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        showGate();
+        return;
+    }
+    showApp();
+    if (id) {
+        setViews({ list: false, detail: true });
+        await loadDetail(id);
+    } else {
+        setViews({ list: true, detail: false });
+        await loadList();
+    }
+}
+
+document.getElementById('authPassword')?.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') signIn();
+});
+
+(async function init() {
+    try {
+        await initSupabase();
+        await route();
+        supabaseClient.auth.onAuthStateChange((event) => {
+            if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
+            void route();
+        });
+    } catch (e) {
+        document.getElementById('authGate').hidden = false;
+        document.getElementById('mainApp').hidden = true;
+        document.getElementById('authError').textContent = e.message || String(e);
+    } finally {
+        document.getElementById('appBootstrap').setAttribute('hidden', '');
+    }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "name": "questrock-credit-intake",
+  "functions": {
+    "questrock-backend.js": {
+      "includeFiles": "config/lendingpad-users.json"
+    }
+  },
+  "builds": [
+    { "src": "questrock-backend.js", "use": "@vercel/node" },
+    { "src": "config/lendingpad-users.json", "use": "@vercel/static" },
+    { "src": "public/logo-questrock.png", "use": "@vercel/static" },
+    { "src": "public/logo-questrock-112023.png", "use": "@vercel/static" },
+    { "src": "questrock-intake.html", "use": "@vercel/static" },
+    { "src": "saved-jobs.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/questrock-backend.js" },
+    { "src": "/saved-jobs", "dest": "/saved-jobs.html" },
+    { "src": "/saved-jobs.html", "dest": "/saved-jobs.html" },
+    { "src": "/config/lendingpad-users.json", "dest": "/config/lendingpad-users.json" },
+    { "src": "/public/logo-questrock.png", "dest": "/public/logo-questrock.png" },
+    { "src": "/public/logo-questrock-112023.png", "dest": "/public/logo-questrock-112023.png" },
+    { "src": "/logo-questrock.png", "dest": "/public/logo-questrock.png" },
+    { "src": "/logo-questrock-112023.png", "dest": "/public/logo-questrock-112023.png" },
+    { "src": "/(.*)", "dest": "/questrock-intake.html" }
+  ],
+  "env": {
+    "LENDINGPAD_API_URL": "@lendingpad_api_url",
+    "LENDINGPAD_CONTACT": "@lendingpad_contact",
+    "LENDINGPAD_COMPANY": "@lendingpad_company",
+    "LENDINGPAD_USERNAME": "@lendingpad_username",
+    "LENDINGPAD_PASSWORD": "@lendingpad_password",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "CHATGPT_ASSISTANT_ID": "@chatgpt_assistant_id",
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key"
+  },
+  "regions": ["iad1"],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "questrock-credit-intake",
+  "version": "4.0.0",
+  "description": "QuestRock Credit Optimization Intake — LendingPad + AI credit report parsing + Supabase jobs",
+  "main": "questrock-backend.js",
+  "scripts": {
+    "build": "node --check questrock-backend.js && node -e \"require('./questrock-backend.js'); console.log('build: backend OK')\"",
+    "build:vercel": "vercel build",
+    "dev": "node local-dev.cjs",
+    "dev:local": "node local-dev.cjs",
+    "dev:vercel": "vercel dev",
+    "deploy:vercel": "vercel --prod",
+    "lo:list": "node -e \"const u=require('./config/lendingpad-users.json');u.forEach(x=>console.log(x.name+' = '+x.id));\"",
+    "test:intake-veronica": "node scripts/run-veronica-preview.cjs",
+    "test:supabase-jobs": "node scripts/verify-supabase-jobs.cjs"
+  },
+  "author": "QuestRock",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.12",
+    "dotenv": "^16.4.5",
+    "vercel": "^41.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
