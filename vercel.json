@@ -1,11 +1,6 @@
 {
   "version": 2,
   "name": "questrock-credit-intake",
-  "functions": {
-    "questrock-backend.js": {
-      "includeFiles": "config/lendingpad-users.json"
-    }
-  },
   "builds": [
     { "src": "questrock-backend.js", "use": "@vercel/node" },
     { "src": "config/lendingpad-users.json", "use": "@vercel/static" },
