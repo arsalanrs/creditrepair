@@ -13,12 +13,7 @@ const CONFIG = {
     LENDINGPAD_USER: process.env.LENDINGPAD_USER,
 
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    CHATGPT_ASSISTANT_ID: process.env.CHATGPT_ASSISTANT_ID || '',
-
-    /** Public Supabase project URL (browser). */
-    SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
-    /** Public anon key only — never put service_role in env exposed to getClientConfig. */
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    CHATGPT_ASSISTANT_ID: process.env.CHATGPT_ASSISTANT_ID || ''
 };
 
 // ---------------------------------------------------------------------------
@@ -114,10 +109,18 @@ async function handleListLendingPadUsers(res) {
     return ok(res, { users });
 }
 
+/** Supabase public config for the browser — read process.env here (not from a module-level snapshot) so Vercel injects values at runtime. */
+function getSupabaseClientEnv() {
+    const supabaseUrl = String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+    const supabaseAnonKey = String(
+        process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    ).trim();
+    return { supabaseUrl, supabaseAnonKey };
+}
+
 /** Public keys for browser Supabase client (auth + RLS writes). */
 async function handleGetClientConfig(res) {
-    const supabaseUrl = (CONFIG.SUPABASE_URL || '').trim();
-    const supabaseAnonKey = (CONFIG.SUPABASE_ANON_KEY || '').trim();
+    const { supabaseUrl, supabaseAnonKey } = getSupabaseClientEnv();
     return ok(res, {
         supabaseUrl: supabaseUrl || null,
         supabaseAnonKey: supabaseAnonKey || null,

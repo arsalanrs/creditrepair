@@ -1136,6 +1136,7 @@ let currentWizardStep = 1;
 
 let supabaseClient = null;
 let supabaseConfigured = false;
+let supabaseInitFailure = '';
 
 function toast(message, variant) {
     const stack = document.getElementById('toastStack');
@@ -1176,6 +1177,7 @@ async function loadSupabaseModule() {
 }
 
 async function initSupabaseFromServer() {
+    supabaseInitFailure = '';
     try {
         const cfg = await apiCall('getClientConfig', {});
         supabaseConfigured = Boolean(cfg.supabaseConfigured && cfg.supabaseUrl && cfg.supabaseAnonKey);
@@ -1192,6 +1194,7 @@ async function initSupabaseFromServer() {
         });
     } catch (e) {
         console.warn('Supabase config unavailable:', e);
+        supabaseInitFailure = e?.message || String(e);
         supabaseConfigured = false;
         supabaseClient = null;
     }
@@ -1559,7 +1562,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         await refreshAuthSession();
         if (!supabaseConfigured && !sessionStorage.getItem('qr_sb_skip_hint')) {
             sessionStorage.setItem('qr_sb_skip_hint', '1');
-            toast('Supabase not configured — sign-in and cloud save are disabled. Add SUPABASE_URL and SUPABASE_ANON_KEY on the server to enable.', 'info');
+            const msg = supabaseInitFailure
+                ? 'Could not reach server config: ' + supabaseInitFailure
+                : 'Supabase keys missing on the server. In Vercel → Project → Settings → Environment Variables, set SUPABASE_URL and SUPABASE_ANON_KEY for Production (and Preview), then redeploy.';
+            toast(msg, 'info');
         }
         loadLendingPadUserList();
         wizardSync();
