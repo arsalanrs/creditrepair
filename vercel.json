@@ -10,8 +10,11 @@
     { "src": "saved-jobs.html", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/api", "dest": "/questrock-backend.js" },
+    { "src": "/api/", "dest": "/questrock-backend.js" },
     { "src": "/api/(.*)", "dest": "/questrock-backend.js" },
     { "src": "/saved-jobs", "dest": "/saved-jobs.html" },
+    { "src": "/saved-jobs/", "dest": "/saved-jobs.html" },
     { "src": "/saved-jobs.html", "dest": "/saved-jobs.html" },
     { "src": "/config/lendingpad-users.json", "dest": "/config/lendingpad-users.json" },
     { "src": "/public/logo-questrock.png", "dest": "/public/logo-questrock.png" },
@@ -22,6 +25,14 @@
   ],
   "regions": ["iad1"],
   "headers": [
+    {
+      "source": "/api",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "headers": [

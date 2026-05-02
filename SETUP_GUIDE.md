@@ -150,6 +150,8 @@ Do **not** put `vercel.json` `env` entries that reference `@secret_name` unless 
 
 **Supabase auth on production:** Add your Vercel URL under **Authentication → URL Configuration** in the Supabase dashboard.
 
+**POST /api returns HTML or “Invalid JSON” / config errors:** The app calls `POST /api` with no extra path. `vercel.json` must route **`/api`** and **`/api/`** to `questrock-backend.js`, not only `/api/(.*)`. Use the repo’s current `vercel.json` and redeploy.
+
 **OpenAI 429 (rate limit):** You may be hitting the tokens-per-minute limit. Upgrade to a higher OpenAI tier or add retry logic.
 
 ---

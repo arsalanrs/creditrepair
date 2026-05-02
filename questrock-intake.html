@@ -1452,6 +1452,12 @@ async function apiCall(action, data) {
         body: JSON.stringify({ action, data })
     });
     const text = await res.text();
+    const trimmed = text.trimStart();
+    if (trimmed.startsWith('<!') || trimmed.toLowerCase().startsWith('<html')) {
+        throw new Error(
+            'The app called /api but received a web page instead of JSON. On Vercel, redeploy with the latest vercel.json so POST /api routes to the serverless function.'
+        );
+    }
     let json;
     try {
         json = JSON.parse(text);
