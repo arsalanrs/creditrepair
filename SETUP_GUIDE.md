@@ -86,18 +86,21 @@ npm run deploy:vercel
 # or: npx vercel --prod
 ```
 
-Then add secrets in the Vercel dashboard (Project > Settings > Environment Variables):
+Then add environment variables in **Vercel → Project → Settings → Environment Variables** (enable for **Production** and **Preview**). Use the same names as in `.env.example` — for example:
 
-| Variable | Vercel Secret Name |
-|----------|-------------------|
-| `LENDINGPAD_API_URL` | `@lendingpad_api_url` |
-| `LENDINGPAD_CONTACT` | `@lendingpad_contact` |
-| `LENDINGPAD_COMPANY` | `@lendingpad_company` |
-| `LENDINGPAD_USERNAME` | `@lendingpad_username` |
-| `LENDINGPAD_PASSWORD` | `@lendingpad_password` |
-| `OPENAI_API_KEY` | `@openai_api_key` |
-| `CHATGPT_ASSISTANT_ID` | `@chatgpt_assistant_id` |
-| `ZAPIER_WEBHOOK_URL` | `@zapier_webhook_url` |
+| Variable |
+|----------|
+| `LENDINGPAD_API_URL` |
+| `LENDINGPAD_CONTACT` |
+| `LENDINGPAD_COMPANY` |
+| `LENDINGPAD_USERNAME` |
+| `LENDINGPAD_PASSWORD` |
+| `OPENAI_API_KEY` |
+| `CHATGPT_ASSISTANT_ID` |
+| `SUPABASE_URL` |
+| `SUPABASE_ANON_KEY` |
+
+Do **not** put `vercel.json` `env` entries that reference `@secret_name` unless you have created matching secrets with `vercel secrets add`; plain dashboard variables are enough.
 
 ---
 
@@ -145,7 +148,7 @@ Then add secrets in the Vercel dashboard (Project > Settings > Environment Varia
 
 **Credit report parse fails with "scanned/image-only":** The PDF has no selectable text. Ask the LO to upload a text-searchable PDF from the credit pull tool.
 
-**Zapier not receiving:** Check that the Zap is turned on and the URL is correct. Use `https://hooks.zapier.com/hooks/catch/...` (not the test URL).
+**Supabase auth on production:** Add your Vercel URL under **Authentication → URL Configuration** in the Supabase dashboard.
 
 **OpenAI 429 (rate limit):** You may be hitting the tokens-per-minute limit. Upgrade to a higher OpenAI tier or add retry logic.
 
