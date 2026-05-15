@@ -177,12 +177,50 @@
             padding: 12px 14px;
             margin-bottom: 10px;
             font-size: 14px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .selected-loan.visible { display: flex; }
+        .selected-loan-top {
+            display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            width: 100%;
         }
-        .selected-loan.visible { display: flex; }
         .selected-loan .info { font-weight: 700; color: #155724; }
+        .joint-credit-scope {
+            padding: 10px 12px;
+            border-radius: var(--qr-radius);
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(21, 87, 36, 0.25);
+            font-size: 13px;
+        }
+        .joint-credit-scope .joint-credit-hint {
+            margin: 0 0 8px;
+            color: var(--qr-navy);
+            font-weight: 600;
+        }
+        .joint-credit-scope label {
+            display: block;
+            margin-top: 6px;
+            cursor: pointer;
+            color: var(--qr-navy);
+        }
+        .credit-doc-wrap {
+            font-size: 13px;
+        }
+        .credit-doc-wrap label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--qr-navy);
+        }
+        .credit-doc-wrap select {
+            width: 100%;
+            max-width: 100%;
+        }
 
         .cr-status {
             display: none;
@@ -741,11 +779,24 @@
             </div>
             <div class="search-results" id="searchResults"></div>
             <div class="selected-loan" id="selectedLoan">
-                <span class="info" id="selectedLoanInfo"></span>
-                <button type="button" class="btn-outline" onclick="clearSelectedLoan()">Clear</button>
+                <div class="selected-loan-top">
+                    <span class="info" id="selectedLoanInfo"></span>
+                    <button type="button" class="btn-outline" onclick="clearSelectedLoan()">Clear</button>
+                </div>
+                <div id="jointCreditScope" class="joint-credit-scope" hidden>
+                    <p class="joint-credit-hint">Joint file — credit repair is for one borrower at a time. Choose whose report to pull:</p>
+                    <label><input type="radio" name="creditBorrowerSubject" value="primary" checked> <span id="creditSubjectPrimaryLabel"></span> (primary)</label>
+                    <label><input type="radio" name="creditBorrowerSubject" value="co"> <span id="creditSubjectCoLabel"></span> (co-borrower)</label>
+                </div>
+                <div id="creditDocPickerWrap" class="credit-doc-wrap" hidden>
+                    <label for="creditDocumentId">Credit report PDF</label>
+                    <select id="creditDocumentId" class="input-dark" aria-label="Which credit PDF to parse">
+                        <option value="">Auto (first credit document)</option>
+                    </select>
+                </div>
             </div>
             <div class="cr-status" id="crStatus"></div>
-            <p class="search-hint">Pick the LO whose pipeline you are searching, then enter a borrower name or loan number.</p>
+            <p class="search-hint">Pick the LO whose pipeline you are searching, then enter a borrower name or loan number. If LendingPad returns an error (for example HTTP 512), that is usually on their side — try again in a minute or search by loan number.</p>
 
             <nav class="stepper" id="stepper" aria-label="Form steps">
                 <div class="stepper-item active" data-step="1">BORROWER</div>
@@ -1129,6 +1180,7 @@
 // ============================== state ==============================
 let selectedLoanData = null;   // from searchLoans
 let parsedCreditReport = null; // from AI parse
+let creditBorrowerListenersBound = false;
 
 const API = '/api';
 const WIZARD_TOTAL = 6;
@@ -1575,6 +1627,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         loadLendingPadUserList();
         wizardSync();
+        initCreditBorrowerScopeListeners();
         const pw = document.getElementById('authPassword');
         if (pw) {
             pw.addEventListener('keydown', (ev) => {
@@ -1626,6 +1679,131 @@ function showCRStatus(cls, text) {
     el.textContent = text;
 }
 
+function clearFieldSourceClasses(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('auto-filled', 'cr-filled');
+    const label = el.previousElementSibling;
+    if (label && label.tagName === 'LABEL') label.classList.remove('auto-filled-label', 'cr-filled-label');
+}
+
+function getCreditTargetNameForApi() {
+    if (!selectedLoanData) return (document.getElementById('fullName').value || '').trim();
+    const co = (selectedLoanData.coBorrowerName || '').trim();
+    if (!co) return (selectedLoanData.borrowerName || '').trim() || (document.getElementById('fullName').value || '').trim();
+    const r = document.querySelector('input[name="creditBorrowerSubject"]:checked');
+    if (r && r.value === 'co') return co;
+    return (selectedLoanData.borrowerName || '').trim();
+}
+
+function updateJointCreditScope(loan) {
+    const el = document.getElementById('jointCreditScope');
+    if (!el) return;
+    const co = (loan.coBorrowerName || '').trim();
+    const pLabel = document.getElementById('creditSubjectPrimaryLabel');
+    const cLabel = document.getElementById('creditSubjectCoLabel');
+    if (pLabel) pLabel.textContent = loan.borrowerName || 'Primary borrower';
+    if (cLabel) cLabel.textContent = co || '—';
+    if (co) {
+        el.hidden = false;
+        const primaryRadio = document.querySelector('input[name="creditBorrowerSubject"][value="primary"]');
+        if (primaryRadio) primaryRadio.checked = true;
+    } else {
+        el.hidden = true;
+    }
+}
+
+function populateCreditDocumentSelect(docs) {
+    const wrap = document.getElementById('creditDocPickerWrap');
+    const sel = document.getElementById('creditDocumentId');
+    if (!wrap || !sel) return;
+    sel.innerHTML = '<option value="">Auto (first credit document)</option>';
+    if (!docs || docs.length <= 1) {
+        wrap.hidden = true;
+        return;
+    }
+    wrap.hidden = false;
+    for (const d of docs) {
+        const opt = document.createElement('option');
+        opt.value = String(d.id);
+        const typePart = d.typeName ? ` (${d.typeName})` : '';
+        opt.textContent = (d.name || 'Credit document') + typePart;
+        sel.appendChild(opt);
+    }
+}
+
+function initCreditBorrowerScopeListeners() {
+    if (creditBorrowerListenersBound) return;
+    creditBorrowerListenersBound = true;
+    const joint = document.getElementById('jointCreditScope');
+    if (joint) {
+        joint.addEventListener('change', (ev) => {
+            if (ev.target.name === 'creditBorrowerSubject') void onCreditBorrowerSubjectChange();
+        });
+    }
+    const docSel = document.getElementById('creditDocumentId');
+    if (docSel) {
+        docSel.addEventListener('change', () => {
+            if (selectedLoanData) void reloadCreditFromLendingPad();
+        });
+    }
+}
+
+async function onCreditBorrowerSubjectChange() {
+    if (!selectedLoanData || !(selectedLoanData.coBorrowerName || '').trim()) return;
+    clearFieldSourceClasses('fullName');
+    const r = document.querySelector('input[name="creditBorrowerSubject"]:checked');
+    const nm = r && r.value === 'co' ? selectedLoanData.coBorrowerName : selectedLoanData.borrowerName;
+    setField('fullName', nm, 'lp');
+    await reloadCreditFromLendingPad();
+}
+
+async function reloadCreditFromLendingPad() {
+    if (!selectedLoanData) return;
+    const targetBorrowerFullName = getCreditTargetNameForApi();
+    const loanId = selectedLoanData.id;
+    const docSel = document.getElementById('creditDocumentId');
+    const documentId = docSel && docSel.value ? String(docSel.value).trim() : '';
+    showCRStatus('parsing', 'Searching for credit report in LendingPad...');
+    try {
+        const body = { loanId, targetBorrowerFullName };
+        if (documentId) body.documentId = documentId;
+        const result = await apiCall('loadLoan', body);
+        populateCreditDocumentSelect(result.creditDocuments || []);
+        if (result.creditReport) {
+            parsedCreditReport = result.creditReport;
+            applyCreditReportData(parsedCreditReport);
+            showCRStatus(
+                'parsed',
+                'Credit report parsed for ' + (targetBorrowerFullName || 'borrower') + '.'
+            );
+            document.getElementById('crAutoMessage').style.display = 'block';
+        } else {
+            parsedCreditReport = null;
+            showCRStatus(
+                'error',
+                'No credit report found or parse failed. Choose another PDF above or upload manually.'
+            );
+        }
+    } catch (e) {
+        showCRStatus('error', 'Could not fetch credit report: ' + e.message);
+    }
+}
+
+function attachLoanAndCreditScopeToPayload(payload) {
+    const loSel = document.getElementById('lendingPadUserId');
+    payload.lendingPadUserId = loSel.value || '';
+    payload.lendingPadUserName = loSel.options[loSel.selectedIndex]?.text || '';
+    if (selectedLoanData) {
+        payload.loanAmount = selectedLoanData.loanAmount;
+        payload.propertyAddress = selectedLoanData.propertyAddress;
+        payload.estimatedClosingDate = selectedLoanData.estimatedClosingDate;
+        const co = (selectedLoanData.coBorrowerName || '').trim();
+        if (co) payload.coBorrowerName = co;
+    }
+    payload.creditReportSubjectName = (document.getElementById('fullName').value || '').trim() || 'UNKNOWN';
+}
+
 // ============================== LendingPad search ==============================
 
 async function searchLoans() {
@@ -1664,10 +1842,13 @@ async function selectLoan(loan) {
     selectedLoanData = loan;
     document.getElementById('searchResults').classList.remove('visible');
     document.getElementById('selectedLoan').classList.add('visible');
+    const jointHint = (loan.coBorrowerName || loan.applicationType === 'Joint') ? ' · Joint file' : '';
     document.getElementById('selectedLoanInfo').textContent =
-        `${loan.borrowerName} | #${loan.loanNumber || '—'} | ${loan.loanType} ${loan.purpose} | Score: ${loan.creditScore || '—'}`;
+        `${loan.borrowerName}${loan.coBorrowerName ? ' & ' + loan.coBorrowerName : ''} | #${loan.loanNumber || '—'} | ${loan.loanType} ${loan.purpose} | Score: ${loan.creditScore || '—'}${jointHint}`;
 
-    // Auto-fill from loan data
+    updateJointCreditScope(loan);
+    populateCreditDocumentSelect(null);
+
     setField('fullName', loan.borrowerName, 'lp');
     setField('applicationType', loan.applicationType, 'lp');
     const purposeNorm = (loan.purpose || '').toLowerCase().includes('purchase') ? 'Purchase' : 'Refinance';
@@ -1675,26 +1856,11 @@ async function selectLoan(loan) {
     setField('loanType', normalizeLoanType(loan.loanType), 'lp');
     setField('currentScore', loan.creditScore, 'lp');
 
-    // Infer housing from purpose
     if (purposeNorm === 'Refinance') {
         setRadio('housingStatus', 'Own home', 'lp');
     }
 
-    // Now fetch credit report from LendingPad
-    showCRStatus('parsing', 'Searching for credit report in LendingPad...');
-    try {
-        const result = await apiCall('loadLoan', { loanId: loan.id });
-        if (result.creditReport) {
-            parsedCreditReport = result.creditReport;
-            applyCreditReportData(parsedCreditReport);
-            showCRStatus('parsed', 'Credit report auto-parsed from LendingPad!');
-            document.getElementById('crAutoMessage').style.display = 'block';
-        } else {
-            showCRStatus('error', 'No credit report found in LendingPad. Please upload manually below.');
-        }
-    } catch (e) {
-        showCRStatus('error', 'Could not fetch credit report: ' + e.message);
-    }
+    await reloadCreditFromLendingPad();
 }
 
 function normalizeLoanType(raw) {
@@ -1710,7 +1876,11 @@ function normalizeLoanType(raw) {
 
 function clearSelectedLoan() {
     selectedLoanData = null;
+    document.getElementById('searchResults').classList.remove('visible');
     document.getElementById('selectedLoan').classList.remove('visible');
+    const j = document.getElementById('jointCreditScope');
+    if (j) j.hidden = true;
+    populateCreditDocumentSelect(null);
     document.getElementById('crStatus').classList.remove('visible');
     document.getElementById('crAutoMessage').style.display = 'none';
 }
@@ -1769,7 +1939,11 @@ async function handleFileUpload() {
 
     try {
         const base64 = await fileToBase64(file);
-        const result = await apiCall('parseCreditReport', { pdfBase64: base64 });
+        const targetBorrowerFullName = (document.getElementById('fullName').value || '').trim();
+        const result = await apiCall('parseCreditReport', {
+            pdfBase64: base64,
+            targetBorrowerFullName
+        });
         parsedCreditReport = result.creditReport;
         applyCreditReportData(parsedCreditReport);
 
@@ -1810,14 +1984,7 @@ async function previewAnalysis() {
     try {
         const payload = collectFormData();
         payload.creditReport = parsedCreditReport || null;
-        const loSel = document.getElementById('lendingPadUserId');
-        payload.lendingPadUserId = loSel.value || '';
-        payload.lendingPadUserName = loSel.options[loSel.selectedIndex]?.text || '';
-        if (selectedLoanData) {
-            payload.loanAmount = selectedLoanData.loanAmount;
-            payload.propertyAddress = selectedLoanData.propertyAddress;
-            payload.estimatedClosingDate = selectedLoanData.estimatedClosingDate;
-        }
+        attachLoanAndCreditScopeToPayload(payload);
         const result = await apiCall('previewIntake', payload);
         const analysisText =
             typeof result.aiAnalysis === 'string' && result.aiAnalysis.trim()
@@ -1856,14 +2023,7 @@ document.getElementById('intakeForm').addEventListener('submit', async function(
     try {
         const payload = collectFormData();
         payload.creditReport = parsedCreditReport || null;
-        const loSel = document.getElementById('lendingPadUserId');
-        payload.lendingPadUserId = loSel.value || '';
-        payload.lendingPadUserName = loSel.options[loSel.selectedIndex]?.text || '';
-        if (selectedLoanData) {
-            payload.loanAmount = selectedLoanData.loanAmount;
-            payload.propertyAddress = selectedLoanData.propertyAddress;
-            payload.estimatedClosingDate = selectedLoanData.estimatedClosingDate;
-        }
+        attachLoanAndCreditScopeToPayload(payload);
 
         const result = await apiCall('submitIntake', payload);
         loading.classList.remove('active');
@@ -1926,6 +2086,9 @@ function resetForm() {
     selectedLoanData = null;
     parsedCreditReport = null;
     document.getElementById('selectedLoan').classList.remove('visible');
+    const j = document.getElementById('jointCreditScope');
+    if (j) j.hidden = true;
+    populateCreditDocumentSelect(null);
     document.getElementById('searchResults').classList.remove('visible');
     document.getElementById('crStatus').classList.remove('visible');
     document.getElementById('crAutoMessage').style.display = 'none';

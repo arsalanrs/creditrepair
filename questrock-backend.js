@@ -37,14 +37,40 @@ function lendingPadBasicAuth() {
 
 async function lpFetch(path) {
     const url = `${CONFIG.LENDINGPAD_API_URL}${path}`;
-    const res = await fetch(url, {
-        headers: {
-            'Authorization': lendingPadBasicAuth(),
-            'Content-Type': 'application/json'
+    const retryable = new Set([502, 503, 504, 512, 520, 521, 522]);
+    const maxAttempts = 3;
+    let lastErr;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const res = await fetch(url, {
+            headers: {
+                Authorization: lendingPadBasicAuth(),
+                'Content-Type': 'application/json'
+            }
+        });
+        if (res.ok) return res;
+
+        const raw = (await res.text()).trim().slice(0, 900);
+        let detail = raw || 'empty response body';
+        try {
+            const j = JSON.parse(raw);
+            if (j && typeof j === 'object') {
+                const m = j.message ?? j.error ?? j.Message ?? j.title;
+                if (typeof m === 'string' && m.trim()) detail = m.trim().slice(0, 500);
+            }
+        } catch (_) {
+            /* keep raw */
         }
-    });
-    if (!res.ok) throw new Error(`LendingPad ${res.status}: ${url}`);
-    return res;
+
+        const hint = retryable.has(res.status)
+            ? ' This status is often temporary on LendingPad — wait a minute, retry, or search by loan number. If it keeps happening, contact LendingPad support with the time of the request.'
+            : '';
+
+        lastErr = new Error(`LendingPad HTTP ${res.status}.${hint} Body: ${detail}`);
+
+        if (!retryable.has(res.status) || attempt === maxAttempts - 1) throw lastErr;
+        await new Promise((r) => setTimeout(r, 750 * (attempt + 1)));
+    }
+    throw lastErr;
 }
 
 function setCORS(res) {
@@ -148,19 +174,24 @@ async function handleSearchLoans(res, query, userId) {
         user,
         take: '25'
     });
-    if (query) qs.set('borrower', query);
+    const borrowerQ = query != null ? String(query).trim() : '';
+    if (borrowerQ) qs.set('borrower', borrowerQ);
 
     const response = await lpFetch(`/integrations/list/loans?${qs}`);
     const body = await response.json();
-    const loans = (body.data || []).map(loan => {
-        const primary = (loan.borrowers || []).find(b => b.coBorrower) || loan.borrowers?.[0];
-        const coBorrower = (loan.borrowers || []).find(b => !b.coBorrower && b.id !== primary?.id);
+    const loans = (body.data || []).map((loan) => {
+        const { primary, coBorrower } = getPrimaryAndCoBorrowerFromLoan(loan);
+        const borrowerName = formatBorrowerName(primary);
+        const coBorrowerName = formatBorrowerName(coBorrower);
         return {
             id: loan.id,
             loanNumber: loan.loanNumber,
-            borrowerName: primary ? `${primary.firstName} ${primary.lastName}`.trim() : '',
-            coBorrowerName: coBorrower ? `${coBorrower.firstName} ${coBorrower.lastName}`.trim() : null,
-            applicationType: coBorrower ? 'Joint' : 'Single',
+            borrowerName,
+            coBorrowerName: coBorrowerName || null,
+            borrowerCount: (loan.borrowers || []).length || (coBorrowerName ? 2 : borrowerName ? 1 : 0),
+            primaryBorrowerId: primary?.id || null,
+            coBorrowerId: coBorrower?.id || null,
+            applicationType: coBorrowerName ? 'Joint' : 'Single',
             purpose: loan.purpose?.name || '',
             loanType: loan.loanType?.name || '',
             creditScore: loan.creditScore || null,
@@ -180,11 +211,46 @@ function formatAddress(addr) {
     return [addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ');
 }
 
+/**
+ * LendingPad: primary borrower carries `coBorrower` as a GUID string pointing at the co-borrower row
+ * (see API examples). Older payloads may use a nested object instead.
+ */
+function getPrimaryAndCoBorrowerFromLoan(loan) {
+    const list = Array.isArray(loan.borrowers) ? loan.borrowers : [];
+    if (!list.length) return { primary: null, coBorrower: null };
+    const primary = list.find((b) => {
+        if (b == null || b.coBorrower == null || b.coBorrower === '') return false;
+        if (typeof b.coBorrower === 'string') return b.coBorrower.length > 0;
+        if (typeof b.coBorrower === 'object') return Boolean(b.coBorrower.id);
+        return false;
+    }) || list[0];
+    let coBorrower = null;
+    const ref = primary?.coBorrower;
+    if (typeof ref === 'string' && ref) {
+        coBorrower = list.find((b) => b && b.id === ref) || null;
+    } else if (ref && typeof ref === 'object' && ref.id) {
+        coBorrower = list.find((b) => b && b.id === ref.id) || ref;
+    }
+    return { primary, coBorrower };
+}
+
+function formatBorrowerName(b) {
+    if (!b) return '';
+    return `${b.firstName || ''} ${b.lastName || ''}`.trim();
+}
+
 // ---------------------------------------------------------------------------
 // LendingPad: Load loan + auto-fetch credit report
 // ---------------------------------------------------------------------------
 
-async function handleLoadLoan(res, loanId) {
+async function handleLoadLoan(res, data) {
+    const loanId = data?.loanId != null ? String(data.loanId).trim() : '';
+    if (!loanId) return fail(res, 400, 'loanId is required');
+
+    const targetBorrowerFullName =
+        typeof data?.targetBorrowerFullName === 'string' ? data.targetBorrowerFullName.trim() : '';
+    const documentIdPreferred = data?.documentId != null ? String(data.documentId).trim() : '';
+
     const qs = new URLSearchParams({
         contact: CONFIG.LENDINGPAD_CONTACT,
         company: CONFIG.LENDINGPAD_COMPANY,
@@ -192,13 +258,32 @@ async function handleLoadLoan(res, loanId) {
     });
 
     let creditReport = null;
+    const creditDocuments = [];
     try {
         const docsRes = await lpFetch(`/integrations/loans/documents?${qs}`);
         const docs = await docsRes.json();
-        const creditDoc = (Array.isArray(docs) ? docs : []).find(d =>
-            d.type?.id === 2 ||
-            (d.name || '').toLowerCase().includes('credit')
-        );
+        const list = Array.isArray(docs) ? docs : [];
+
+        for (const d of list) {
+            const tid = d.type?.id;
+            const n = (d.name || '').toLowerCase();
+            if (tid === 2 || n.includes('credit')) {
+                creditDocuments.push({
+                    id: d.id,
+                    name: d.name || 'Credit document',
+                    typeId: tid ?? null,
+                    typeName: d.type?.name || null
+                });
+            }
+        }
+
+        let creditDoc = null;
+        if (documentIdPreferred) {
+            creditDoc = list.find((d) => String(d.id) === documentIdPreferred) || null;
+        }
+        if (!creditDoc) {
+            creditDoc = list.find((d) => d.type?.id === 2 || (d.name || '').toLowerCase().includes('credit'));
+        }
 
         if (creditDoc) {
             const fileQs = new URLSearchParams({
@@ -212,29 +297,40 @@ async function handleLoadLoan(res, loanId) {
             const buffer = Buffer.from(arrayBuf);
 
             if (buffer.length > 0) {
-                creditReport = await extractCreditReport(buffer);
+                creditReport = await extractCreditReport(buffer, targetBorrowerFullName);
             }
         }
     } catch (err) {
         console.error('Credit report auto-fetch failed (non-fatal):', err.message);
     }
 
-    return ok(res, { creditReport });
+    return ok(res, { creditReport, creditDocuments });
 }
 
 // ---------------------------------------------------------------------------
 // Credit report parsing (manual upload)
 // ---------------------------------------------------------------------------
 
-async function handleParseCreditReport(res, pdfBase64) {
+async function handleParseCreditReport(res, data) {
+    const pdfBase64 =
+        typeof data === 'string'
+            ? data
+            : data && typeof data.pdfBase64 === 'string'
+              ? data.pdfBase64
+              : '';
     if (!pdfBase64) return fail(res, 400, 'No PDF data provided');
 
+    const targetBorrowerFullName =
+        data && typeof data === 'object' && typeof data.targetBorrowerFullName === 'string'
+            ? data.targetBorrowerFullName.trim()
+            : '';
+
     const buffer = Buffer.from(pdfBase64, 'base64');
-    const creditReport = await extractCreditReport(buffer);
+    const creditReport = await extractCreditReport(buffer, targetBorrowerFullName);
     return ok(res, { creditReport });
 }
 
-async function extractCreditReport(buffer) {
+async function extractCreditReport(buffer, targetBorrowerFullName = '') {
     const parsed = await pdfParse(buffer);
     const text = (parsed.text || '').trim();
     if (text.length < 200) {
@@ -242,7 +338,9 @@ async function extractCreditReport(buffer) {
     }
 
     const truncated = text.slice(0, 120_000);
-    return parseCreditReportWithAI(truncated);
+    const scope =
+        typeof targetBorrowerFullName === 'string' ? targetBorrowerFullName.trim() : '';
+    return parseCreditReportWithAI(truncated, scope);
 }
 
 const CREDIT_EXTRACT_PROMPT = `You are a credit report data extraction engine.
@@ -250,6 +348,7 @@ Given the raw text of a consumer credit report, extract ONLY the structured JSON
 Return ONLY valid JSON, no markdown fences, no commentary.
 
 {
+  "extractedForBorrowerName": "<string: name as printed on the report for the consumer you extracted; null only if truly unknown>",
   "scores": {
     "equifax": <int or null>,
     "experian": <int or null>,
@@ -285,9 +384,17 @@ Rules:
 - "housingStatus": if any mortgage tradeline exists → "Owns", otherwise → "Renting" (default assumption) or "Unknown" if not determinable.
 - "suggestedRepairGoals": infer from derogatory severity and score gap.
 - If a field cannot be determined, use null for numbers and "Unknown" for strings.
+- Multiple consumers: The text may be a merged PDF or contain more than one named consumer (co-borrowers, joint file). NEVER mix two people's tradelines, scores, balances, inquiries, collections, or public records into one JSON object.
+- If a TARGET CONSUMER name is given in a separate instruction, extract ONLY that person's data (match using full name, reversed order, middle initials, common nicknames). All counts and totals must refer only to that consumer.
+- If NO target name is given but multiple distinct consumer sections exist, extract ONLY the first complete consumer block and set extractedForBorrowerName from that section's header; do not merge co-borrowers.
 - Return ONLY the JSON object.`;
 
-async function parseCreditReportWithAI(text) {
+async function parseCreditReportWithAI(text, targetBorrowerFullName = '') {
+    const scope =
+        typeof targetBorrowerFullName === 'string' && targetBorrowerFullName.trim()
+            ? `\n\nTARGET CONSUMER (mandatory — do not blend with anyone else on this file):\n"${targetBorrowerFullName.trim()}"\nExtract only this consumer's credit data. Set extractedForBorrowerName to the spelling shown on the report header for that consumer when identifiable.`
+            : '\n\nNo named target was supplied. If multiple consumers appear, isolate one complete consumer only — never merge joint borrowers.';
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -299,7 +406,7 @@ async function parseCreditReportWithAI(text) {
             response_format: { type: 'json_object' },
             temperature: 0.1,
             messages: [
-                { role: 'system', content: CREDIT_EXTRACT_PROMPT },
+                { role: 'system', content: CREDIT_EXTRACT_PROMPT + scope },
                 { role: 'user', content: text }
             ]
         })
@@ -358,10 +465,26 @@ function formatIntakeData(d) {
     const renterPurchase =
         (d.housingStatus === 'Renting' || d.isRenting === 'Yes') && d.loanPurpose === 'Purchase';
 
+    const coName = (d.coBorrowerName && String(d.coBorrowerName).trim()) || '';
+    const subject =
+        (d.creditReportSubjectName && String(d.creditReportSubjectName).trim()) ||
+        (d.fullName && String(d.fullName).trim()) ||
+        'UNKNOWN';
+    const extractedName =
+        cr.extractedForBorrowerName != null && String(cr.extractedForBorrowerName).trim()
+            ? String(cr.extractedForBorrowerName).trim()
+            : '';
+
     return `
 QUESTROCK CREDIT OPTIMIZATION INTAKE (v3) — structured fields below. Follow the system prompt's REQUIRED OUTPUT SECTIONS exactly. Do not invent bureau-level tradeline detail not present in this message or in section 11.
 
 Loan officer (LendingPad user): ${d.lendingPadUserName || 'UNKNOWN'} | ${d.lendingPadUserId || 'UNKNOWN'}
+
+0. BORROWER SCOPE (CRITICAL — DO NOT BLEND CO-BORROWERS)
+This plan is for ONE borrower only: ${subject}
+${coName ? `Co-borrower on the loan file (context only — do NOT use their tradelines, scores, or derogs in this plan unless explicitly duplicated in section 12 for the subject above): ${coName}` : 'Co-borrower on file: None / single borrower'}
+${extractedName ? `AI credit extract attributed to (from PDF): ${extractedName}` : ''}
+If section 12 could possibly mix two consumers, trust ONLY items that clearly belong to ${subject} and state UNKNOWN rather than guessing.
 
 1. BORROWER INFORMATION
 Full Name: ${d.fullName || 'UNKNOWN'}
@@ -427,7 +550,7 @@ Borrower personality: ${d.personality || 'UNKNOWN'}
 11. DEAL PRIORITY
 Urgency: ${d.urgency || 'UNKNOWN'}
 
-12. CREDIT REPORT SUMMARY (AI-EXTRACTED)
+12. CREDIT REPORT SUMMARY (AI-EXTRACTED)${extractedName ? ` — extracted for: ${extractedName}` : ''}
 Collections: ${cr.collections?.count ?? 'UNKNOWN'} accounts, $${cr.collections?.totalBalance ?? 'UNKNOWN'} total
 ${(cr.collections?.accounts || []).map(a => `  - ${a.creditor}: $${a.balance}`).join('\n')}
 Charge-offs: ${cr.chargeOffs?.count ?? 'UNKNOWN'} accounts, $${cr.chargeOffs?.totalBalance ?? 'UNKNOWN'} total
@@ -613,9 +736,9 @@ module.exports = async (req, res) => {
             case 'searchLoans':
                 return await handleSearchLoans(res, data?.query, data?.userId);
             case 'loadLoan':
-                return await handleLoadLoan(res, data?.loanId);
+                return await handleLoadLoan(res, data);
             case 'parseCreditReport':
-                return await handleParseCreditReport(res, data?.pdfBase64);
+                return await handleParseCreditReport(res, data);
             case 'submitIntake':
                 return await handleSubmitIntake(res, data);
             default: {
