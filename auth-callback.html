@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signing in — QuestRock Credit Repair</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fdfaf3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #2c3544;
+    }
+    .box {
+      text-align: center;
+      padding: 2rem;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #f26722;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 1.25rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    p { font-size: 0.875rem; color: #6b7280; margin: 0; }
+    .err { color: #dc2626; margin-top: 1rem; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="spinner"></div>
+    <p>Signing you in…</p>
+    <p class="err" id="err" hidden></p>
+  </div>
+
+  <script type="module">
+    async function run() {
+      const params = new URLSearchParams(window.location.search);
+      const at = params.get('sso_at');
+      const rt = params.get('sso_rt');
+
+      if (!at || !rt) {
+        window.location.replace('/');
+        return;
+      }
+
+      // Fetch Supabase config from the server
+      let cfg;
+      try {
+        const res = await fetch('/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getClientConfig' }),
+        });
+        cfg = await res.json();
+      } catch (e) {
+        showError('Could not reach server config.');
+        return;
+      }
+
+      if (!cfg.supabaseConfigured || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+        window.location.replace('/');
+        return;
+      }
+
+      // Dynamically load Supabase client
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.49.8');
+      const supabase = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+        auth: { persistSession: true, autoRefreshToken: true },
+      });
+
+      const { error } = await supabase.auth.setSession({
+        access_token: at,
+        refresh_token: rt,
+      });
+
+      if (error) {
+        showError('Sign-in failed: ' + error.message);
+        return;
+      }
+
+      // Success — go to main app (strip tokens from URL)
+      window.location.replace('/');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('err');
+      el.textContent = msg;
+      el.hidden = false;
+      setTimeout(() => window.location.replace('/'), 3000);
+    }
+
+    run().catch((e) => showError(String(e)));
+  </script>
+</body>
+</html>

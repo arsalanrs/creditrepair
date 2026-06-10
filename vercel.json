@@ -7,9 +7,12 @@
     { "src": "public/logo-questrock.png", "use": "@vercel/static" },
     { "src": "public/logo-questrock-112023.png", "use": "@vercel/static" },
     { "src": "questrock-intake.html", "use": "@vercel/static" },
-    { "src": "saved-jobs.html", "use": "@vercel/static" }
+    { "src": "saved-jobs.html", "use": "@vercel/static" },
+    { "src": "auth-callback.html", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/auth/callback", "dest": "/auth-callback.html" },
+    { "src": "/auth-callback", "dest": "/auth-callback.html" },
     { "src": "/api", "dest": "/questrock-backend.js" },
     { "src": "/api/", "dest": "/questrock-backend.js" },
     { "src": "/api/(.*)", "dest": "/questrock-backend.js" },
