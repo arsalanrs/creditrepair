@@ -1242,7 +1242,7 @@ async function initSupabaseFromServer() {
             auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
         supabaseClient.auth.onAuthStateChange((_event, session) => {
-            applyAuthSession(session);
+            void applyAuthSession(session).catch((e) => console.warn('auth session apply:', e));
         });
     } catch (e) {
         console.warn('Supabase config unavailable:', e);
@@ -1253,20 +1253,25 @@ async function initSupabaseFromServer() {
 }
 
 async function applyAuthSession(session) {
-    if (!supabaseConfigured) {
-        setMainVisible(true);
-        await updateHeaderAuthHint(null);
+    try {
+        if (!supabaseConfigured) {
+            setMainVisible(true);
+            await updateHeaderAuthHint(null);
+            hideAppBootstrap();
+            return;
+        }
+        if (session && session.user) {
+            setMainVisible(true);
+            await updateHeaderAuthHint(session);
+        } else {
+            setMainVisible(false);
+            await updateHeaderAuthHint(null);
+        }
         hideAppBootstrap();
-        return;
+    } catch (e) {
+        console.warn('applyAuthSession:', e);
+        hideAppBootstrap();
     }
-    if (session && session.user) {
-        setMainVisible(true);
-        await updateHeaderAuthHint(session);
-    } else {
-        setMainVisible(false);
-        await updateHeaderAuthHint(null);
-    }
-    hideAppBootstrap();
 }
 
 async function resolveDisplayName(session) {
@@ -1275,12 +1280,12 @@ async function resolveDisplayName(session) {
     if (meta && String(meta).trim()) return String(meta).trim();
     if (supabaseClient && session.user.id) {
         try {
-            const { data: profile } = await supabaseClient
+            const { data: profile, error } = await supabaseClient
                 .from('users')
                 .select('full_name')
                 .eq('id', session.user.id)
                 .maybeSingle();
-            if (profile && profile.full_name && String(profile.full_name).trim()) {
+            if (!error && profile && profile.full_name && String(profile.full_name).trim()) {
                 return String(profile.full_name).trim();
             }
         } catch (_) { /* table may not exist on this project */ }
@@ -1312,11 +1317,11 @@ async function updateHeaderAuthHint(session) {
 
 async function refreshAuthSession() {
     if (!supabaseClient) {
-        applyAuthSession(null);
+        await applyAuthSession(null);
         return;
     }
     const { data: { session } } = await supabaseClient.auth.getSession();
-    applyAuthSession(session);
+    await applyAuthSession(session);
 }
 
 async function signInWithSupabase() {
@@ -1356,7 +1361,7 @@ async function signOutSupabase() {
         const msg = e?.message || String(e);
         toast(msg + ' — clearing local session anyway.', 'error');
     } finally {
-        applyAuthSession(null);
+        await applyAuthSession(null);
         const pw = document.getElementById('authPassword');
         if (pw) pw.value = '';
     }
@@ -1624,23 +1629,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initSupabaseFromServer();
 
         const params = new URLSearchParams(window.location.search);
-        if (params.get('logout') === '1' || params.get('signout') === '1') {
+        const wantsLogout = params.get('logout') === '1' || params.get('signout') === '1';
+        if (wantsLogout) {
             if (supabaseClient) {
                 try {
                     await supabaseClient.auth.signOut({ scope: 'local' });
                 } catch (_) {
                     /* ignore */
                 }
-                applyAuthSession(null);
+                await applyAuthSession(null);
             }
             params.delete('logout');
             params.delete('signout');
             const q = params.toString();
             const next = window.location.pathname + (q ? '?' + q : '') + window.location.hash;
             window.history.replaceState({}, '', next);
+        } else {
+            await refreshAuthSession();
         }
-
-        await refreshAuthSession();
         if (!supabaseConfigured && !sessionStorage.getItem('qr_sb_skip_hint')) {
             sessionStorage.setItem('qr_sb_skip_hint', '1');
             const msg = supabaseInitFailure

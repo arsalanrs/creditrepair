@@ -485,7 +485,12 @@ async function signOut() {
         showGate();
         return;
     }
-    await supabaseClient.auth.signOut({ scope: 'local' });
+    try {
+        const { error } = await supabaseClient.auth.signOut({ scope: 'local' });
+        if (error) throw error;
+    } catch (e) {
+        console.warn('signOut:', e);
+    }
     showGate();
 }
 
