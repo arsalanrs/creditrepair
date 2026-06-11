@@ -1252,24 +1252,45 @@ async function initSupabaseFromServer() {
     }
 }
 
-function applyAuthSession(session) {
+async function applyAuthSession(session) {
     if (!supabaseConfigured) {
         setMainVisible(true);
-        updateHeaderAuthHint(null);
+        await updateHeaderAuthHint(null);
         hideAppBootstrap();
         return;
     }
     if (session && session.user) {
         setMainVisible(true);
-        updateHeaderAuthHint(session);
+        await updateHeaderAuthHint(session);
     } else {
         setMainVisible(false);
-        updateHeaderAuthHint(null);
+        await updateHeaderAuthHint(null);
     }
     hideAppBootstrap();
 }
 
-function updateHeaderAuthHint(session) {
+async function resolveDisplayName(session) {
+    if (!session || !session.user) return '';
+    const meta = session.user.user_metadata && session.user.user_metadata.full_name;
+    if (meta && String(meta).trim()) return String(meta).trim();
+    if (supabaseClient && session.user.id) {
+        try {
+            const { data: profile } = await supabaseClient
+                .from('users')
+                .select('full_name')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            if (profile && profile.full_name && String(profile.full_name).trim()) {
+                return String(profile.full_name).trim();
+            }
+        } catch (_) { /* table may not exist on this project */ }
+    }
+    const email = session.user.email ? String(session.user.email) : '';
+    if (email) return email.split('@')[0];
+    return '';
+}
+
+async function updateHeaderAuthHint(session) {
     const hint = document.getElementById('headerAuthHint');
     if (!hint) return;
     if (!supabaseConfigured) {
@@ -1277,14 +1298,16 @@ function updateHeaderAuthHint(session) {
         hint.hidden = true;
         return;
     }
-    const email = session && session.user && session.user.email ? String(session.user.email) : '';
-    if (email) {
-        hint.textContent = 'Signed in as ' + email;
-        hint.hidden = false;
-    } else {
-        hint.textContent = '';
-        hint.hidden = true;
+    if (session && session.user) {
+        const display = await resolveDisplayName(session);
+        if (display) {
+            hint.textContent = display;
+            hint.hidden = false;
+            return;
+        }
     }
+    hint.textContent = '';
+    hint.hidden = true;
 }
 
 async function refreshAuthSession() {
