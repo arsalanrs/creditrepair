@@ -464,6 +464,23 @@ function formatIntakeData(d) {
     }
     const renterPurchase =
         (d.housingStatus === 'Renting' || d.isRenting === 'Yes') && d.loanPurpose === 'Purchase';
+    const isRenting = d.isRenting === 'Yes' || d.housingStatus === 'Renting';
+
+    const parseMoney = (v) => {
+        if (v == null || v === '' || v === 'UNKNOWN') return 0;
+        const n = Number(String(v).replace(/[^0-9.]/g, ''));
+        return Number.isFinite(n) ? n : 0;
+    };
+    const budgetPrimary = parseMoney(d.maxWilling) || parseMoney(d.totalBudget);
+    const unlimitedBudget =
+        budgetPrimary >= 25000
+        || /unlimited|no limit|no max/i.test(String(d.maxWilling || d.totalBudget || ''));
+    const planBSpendCap = budgetPrimary ? Math.min(Math.round(budgetPrimary * 1.75), budgetPrimary + 3000) : 0;
+    const planCSpendCap = budgetPrimary ? Math.min(Math.round(budgetPrimary * 2.5), budgetPrimary + 5000) : 0;
+
+    const loanMinTarget = {
+        FHA: 500, VA: 500, Conventional: 620, 'Non-QM': 620, DSCR: 620, USDA: 620, HELOC: 620,
+    }[d.loanType] ?? null;
 
     const coName = (d.coBorrowerName && String(d.coBorrowerName).trim()) || '';
     const subject =
@@ -500,8 +517,8 @@ On-time & traceable payments: ${d.rentPayments || 'UNKNOWN'}` : ''}
 Loan Type: ${d.loanType || 'UNKNOWN'}
 Current Credit Score (mid): ${d.currentScore || 'UNKNOWN'}
 Equifax: ${scores.equifax ?? 'UNKNOWN'} | Experian: ${scores.experian ?? 'UNKNOWN'} | TransUnion: ${scores.transunion ?? 'UNKNOWN'}
-Target Score Needed: ${d.targetScore || 'UNKNOWN'}
-Ideal Score Goal: ${d.idealScore || 'UNKNOWN'}
+Target Score Needed: ${d.targetScore || 'UNKNOWN'}${loanMinTarget != null ? ` (program minimum: ${loanMinTarget})` : ''}
+Ideal Score Goal (pricing): ${d.idealScore || 'UNKNOWN'}
 Credit Repair Goal: ${Array.isArray(d.repairGoal) ? d.repairGoal.join(', ') : d.repairGoal || 'UNKNOWN'}
 
 3. TIMELINE (CRITICAL)
@@ -512,6 +529,10 @@ Desired Timeframe to Improve Score: ${d.scoreTimeline || 'UNKNOWN'}
 Total Available Budget: $${d.totalBudget || 'UNKNOWN'}
 Immediate Cash Available: $${d.immediateCash || 'UNKNOWN'}
 Max Willing to Spend: $${d.maxWilling || 'UNKNOWN'}
+Plan A spend cap (must match budget): $${budgetPrimary || 'UNKNOWN'}
+Plan B spend cap (moderate stretch): $${planBSpendCap || 'N/A'}
+Plan C spend cap (max stretch — do not exceed): $${planCSpendCap || 'N/A'}
+Unlimited / speed mode: ${unlimitedBudget ? 'YES — optimize for fastest timeline, not max spend' : 'NO — budget-first'}
 
 5. BORROWER EXECUTION PROFILE (CRITICAL)
 Will take action immediately: ${d.immediateAction || 'UNKNOWN'}
@@ -532,9 +553,9 @@ AU Late History: ${d.auLateHistory || 'UNKNOWN'}` : ''}
 
 8. RENT / ALT CREDIT (SUPPORTING)
 Is renting: ${d.isRenting || 'UNKNOWN'}
-Monthly rent: $${d.monthlyRentAlt || 'UNKNOWN'}
+${isRenting ? `Monthly rent: $${d.monthlyRentAlt || d.monthlyRent || 'UNKNOWN'}
 On-time payment history: ${d.onTimePayments || 'UNKNOWN'}
-Utilities in borrower name: ${d.utilitiesInName || 'UNKNOWN'}
+Utilities in borrower name: ${d.utilitiesInName || 'UNKNOWN'}` : 'Not renting — skip rent reporting section.'}
 
 9. STRATEGY FLAGS (computed — follow system prompt plan / rent / Boost rules)
 Marginal bureau (lowest of EQ/EX/TU from scores below): ${marginalBureau}
@@ -790,12 +811,11 @@ INTERNAL ANALYSIS (reason through these before writing; fold conclusions into th
 6. **Authorized user:** base recommendation **only** on intake "Has access to strong AU" and credit summary — **never** prescribe "Add AU" as a primary step if intake says **No** (no phantom AU). If **Unsure**, say what would need to be true before adding; if **Yes (family/friend)**, use stated AU profile.
 7. **Rent reporting (renters):** If housing is **Renting** AND borrower is on a **purchase** path, you **must** include an explicit **RENT REPORTING** decision (EXECUTION PLAN or FILE THICKNESS): Recommend **Yes** or **Skip** with **one sentence tied to score gap, budget, and timeline** — skip if derogs + util + AU path already clears the target in time; if thin file or weak payment depth and clean rent, say yes and note **mortgage FICO 2/4/5 indirect impact**. If intake shows on-time rent / rent alt fields, reference them.
 8. **Experian Boost:** If **Experian is the lowest** of the three bureau scores in the intake (or clearly the binding bottleneck vs target), add a bullet under **UPDATE STRATEGY** or **EXECUTION PLAN** that literally includes the words **"Experian Boost"** (borrower self-serve; minimal LO work). If the user message **STRATEGY FLAGS** line says **Do NOT prioritize**, then do **not** add Boost unless you explain an exception in one sentence.
-9. **Plans A/B/C (strict differentiation — read carefully):**
-   - **Never** output three plans that are the **same steps in different order** with the **same total spend** and only different score ranges — that is invalid output.
-   - If budget is effectively **unlimited** (intake says so or max spend is an extreme placeholder) AND borrower wants **fastest / best outcome**: output **ONE primary plan (Plan A)** that is the **single fastest + highest-probability** path; you may add **Plan B** **only** if it is **materially different**: meaning **≥25% lower total spend** OR it **drops a major lever** for a cheaper tradeoff with a clearly worse projection. **Do not** output Plan C in the unlimited + speed case unless it is equally distinct (usually omit Plan C).
-   - If budget is **limited**: **Plan A** = best path respecting stated **total / max** budget. **Plan B** = **stretch** path: total estimated spend should be **meaningfully higher** than Plan A (guide: **~25–40% more** than Plan A, or at least **one additional lever** Plan A skipped—not reordering the same bullets). If you cannot design a honest Plan B that differs on **$ and/or levers**, output **only Plan A** and a short note: "No materially better distinct path within typical stretch of stated budget."
-   - **Plan C** only when it is a genuinely third tier (different risk/speed tradeoff AND different total $). Otherwise **omit Plan C** entirely.
-   - Each plan must show **different total estimated spend** OR explicitly justify same spend with **non-overlapping step sets** (rare); same dollar total on all three plans is a **failure** — revise before answering.
+9. **Plans A/B/C (strict — always output exactly THREE plans unless budget is unlimited):**
+   - **Budget-limited (default):** Plan A **Total Estimated Spend** must stay **at or below Plan A spend cap** in section 4 and balance **timeline + probability** within the borrower's score improvement window. Plan B = **best alternative** with **moderate** spend increase (toward Plan B cap) OR modest timeline extension — not both maxed. Plan C = **higher spend OR longer timeline** but **must not exceed Plan C spend cap** (typically ≤2.5× budget, e.g. $2,000 budget → Plan C ≤ ~$5,000). Never exceed Plan C cap.
+   - **Unlimited budget:** Do NOT inflate spend. Instead output **three speed tiers**: Plan A = fastest path, Plan B = next-fastest (slightly lower cost or fewer levers), Plan C = economy/slower but still viable. Label each with **timeline emphasis**, not higher spend for its own sake.
+   - Plan A is always **#1 recommended**. Plans B and C must differ from A in **total spend AND/OR timeline AND/OR levers** — never reorder the same steps.
+   - Each plan: Probability, **Total Estimated Spend**, numbered Steps, Score Projection.
 10. LO Script, First 48 Hours, projections, pipeline status.
 
 REQUIRED OUTPUT SECTIONS (use these headings in this order; put a line "-----" between each major block below). Bold every dollar amount (**$X**). Bullets over long paragraphs.
@@ -830,7 +850,9 @@ EXECUTION PLAN
 - https://www.elinecredit.com
 Disclaimer: Widely used in the industry. QuestRock has not directly vetted these. Use at your own discretion.
 
-2. DEROGATORY CLEANUP — Per item: creditor, type (collection / CO / late), bureaus if known, balances, action (**pay-for-delete / negotiate→pay to $0 / dispute / goodwill**), **PAY: $X** or DISPUTE/LETTER. For charge-offs: state **negotiate first** when reasonable, then **pay to $0** if negotiation insufficient. Priority: Medical > Collections > Charge-offs > Lates.
+2. DEROGATORY CLEANUP — Per item: creditor, type (collection / CO / late), bureaus if known, balances, action (**pay-for-delete / negotiate→pay to $0 / dispute / goodwill letter to creditor**), **PAY: $X** or DISPUTE/LETTER. For charge-offs: state **negotiate first** when reasonable, then **pay to $0** if negotiation insufficient. Priority: Medical > Collections > Charge-offs > Lates.
+
+**GOODWILL LATE REMOVAL (when a late payment is the issue):** Do NOT say "search for lates" or vague goodwill. Give **clear LO instructions**: (1) Identify creditor + account last-4, (2) Call creditor retention/goodwill line, (3) Send **goodwill letter** requesting removal of the specific late as a one-time courtesy citing on-time history before/after, (4) If denied, note bureau dispute is separate and less effective for accurate lates. Include a **3–5 sentence letter template** with placeholders [Creditor], [Account #], [Date of late], [Brief hardship reason if stated].
 
 3. UTILIZATION OPTIMIZATION — Start with: ⚠️ Verify current balances before making payments. Each revolver: limit, balance, util %, target ~9%, **PAY: $X**. Aggregate util → target <9%.
 
@@ -846,23 +868,28 @@ Formatting inside EXECUTION PLAN:
 - No filler paragraphs; every line executable
 
 -----
-PLANS (follow INTERNAL ANALYSIS plan rules — no clone plans)
+PLANS (follow INTERNAL ANALYSIS plan rules — always THREE plans for budget-limited; speed tiers for unlimited)
 
-PLAN A — [short label; primary path]
+PLAN A — [short label; **#1 recommended** — within budget cap]
 Probability: [range]
-Total Estimated Spend: **$X** (must be explicit)
-Steps: numbered, one line each — **unique lever mix vs other plans**
-Score Projection: mid-score range (estimate)
-
-(Include **PLAN B** only if it meets the differentiation rules above; otherwise write: "**No Plan B** — no materially distinct second path within budget/stretch rules.")
-
-PLAN B — [short label; only if distinct per rules]
-Probability: [range]
-Total Estimated Spend: **$Y** where **Y ≠ X** in a meaningful way OR step list omits/adds major levers vs Plan A
+Total Estimated Spend: **$X** (must respect Plan A cap from intake)
 Steps: numbered, one line each
 Score Projection: mid-score range (estimate)
+Timeline fit: [how this meets close/score timeline]
 
-(Include **PLAN C** only when a third genuinely distinct tier exists; otherwise **omit Plan C entirely**.)
+PLAN B — [moderate alternative — slightly higher spend OR modest timeline change]
+Probability: [range]
+Total Estimated Spend: **$Y** (≤ Plan B cap; must differ from Plan A)
+Steps: numbered
+Score Projection: mid-score range (estimate)
+What changes vs Plan A: [1 sentence]
+
+PLAN C — [stretch alternative — higher spend OR longer timeline, within Plan C cap]
+Probability: [range]
+Total Estimated Spend: **$Z** (≤ Plan C cap — never exceed max stretch)
+Steps: numbered
+Score Projection: mid-score range (estimate)
+What changes vs Plan B: [1 sentence]
 
 -----
 FIRST 48 HOURS

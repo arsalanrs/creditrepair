@@ -788,7 +788,7 @@
                     <label><input type="radio" name="creditBorrowerSubject" value="primary" checked> <span id="creditSubjectPrimaryLabel"></span> (primary)</label>
                     <label><input type="radio" name="creditBorrowerSubject" value="co"> <span id="creditSubjectCoLabel"></span> (co-borrower)</label>
                 </div>
-                <div id="creditDocPickerWrap" class="credit-doc-wrap" hidden>
+                <div id="creditDocPickerWrap" class="credit-doc-wrap" hidden aria-hidden="true">
                     <label for="creditDocumentId">Credit report PDF</label>
                     <select id="creditDocumentId" class="input-dark" aria-label="Which credit PDF to parse">
                         <option value="">Auto (first credit document)</option>
@@ -887,7 +887,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="loanType">Loan Type <span class="required">*</span></label>
-                        <select id="loanType" name="loanType" required>
+                        <select id="loanType" name="loanType" required onchange="applyLoanTypeScoreDefaults(true)">
                             <option value="">Select...</option>
                             <option value="FHA">FHA</option>
                             <option value="Conventional">Conventional</option>
@@ -904,12 +904,12 @@
                         <input type="number" id="currentScore" name="currentScore" placeholder="e.g. 620">
                     </div>
                     <div class="form-group">
-                        <label for="targetScore">Target Score Needed <span class="required">*</span></label>
-                        <input type="number" id="targetScore" name="targetScore" required placeholder="e.g. 640">
+                        <label for="targetScore">Minimum target score (approval) <span class="required">*</span></label>
+                        <input type="number" id="targetScore" name="targetScore" required placeholder="Set by loan type">
                     </div>
                     <div class="form-group">
-                        <label for="idealScore">Ideal Score Goal (pricing)</label>
-                        <input type="number" id="idealScore" name="idealScore" placeholder="e.g. 680">
+                        <label for="idealScore">Ideal score (pricing)</label>
+                        <input type="number" id="idealScore" name="idealScore" placeholder="Optional — better rate/pricing">
                     </div>
                 </div>
                 <div class="form-group">
@@ -1021,16 +1021,18 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Is borrower renting? <span class="required">*</span></label>
-                        <select name="isRenting" id="isRenting" required><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                        <select name="isRenting" id="isRenting" required onchange="toggleRentAltFields()"><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
                     </div>
+                </div>
+                <div class="form-grid" id="rentAltFields" style="display:none;">
                     <div class="form-group"><label for="monthlyRentAlt">Monthly rent ($)</label><input type="number" id="monthlyRentAlt" name="monthlyRentAlt" placeholder="0"></div>
                     <div class="form-group">
-                        <label>On-time payment history <span class="required">*</span></label>
-                        <select name="onTimePayments" required><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                        <label>On-time payment history <span class="required rent-only-req">*</span></label>
+                        <select name="onTimePayments" id="onTimePayments"><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
                     </div>
                     <div class="form-group">
-                        <label>Utilities in borrower name <span class="required">*</span></label>
-                        <select name="utilitiesInName" required><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                        <label>Utilities in borrower name <span class="required rent-only-req">*</span></label>
+                        <select name="utilitiesInName" id="utilitiesInName"><option value="">Select…</option><option value="Yes">Yes</option><option value="No">No</option></select>
                     </div>
                 </div>
             </div>
@@ -1120,23 +1122,18 @@
                 </div>
             </div>
 
-            <div class="form-section" id="creditUploadSection">
+            <div class="form-section" id="creditUploadSection" hidden aria-hidden="true">
                 <div class="section-header">
                     <span class="section-icon-wrap time" aria-hidden="true">&#128206;</span>
                     <h3>Credit report</h3>
                 </div>
-                <div id="crAutoMessage" style="display:none; margin-bottom:16px;">
-                    <span style="background:#d1ecf1; color:#0c5460; padding:8px 14px; border-radius:6px; font-size:13px; display:inline-block;">
-                        Credit report was auto-parsed from LendingPad. Upload a new PDF below to override.
-                    </span>
-                </div>
-                <div class="form-group">
+                <p style="font-size:13px;color:#64748b;margin:0;">Credit report upload is disabled — enter scores and derog details manually to protect borrower PII.</p>
+                <div class="form-group" hidden>
                     <label>Upload FULL CREDIT REPORT (PDF)</label>
-                    <div class="file-upload" id="fileUploadArea" onclick="document.getElementById('creditReport').click()">
-                        <p id="fileUploadText">Click to upload or drag and drop</p>
-                        <p style="font-size:12px; color:#6c757d; margin-top:10px;">Accepted: PDF</p>
+                    <div class="file-upload" id="fileUploadArea">
+                        <p id="fileUploadText">Disabled</p>
                     </div>
-                    <input type="file" id="creditReport" name="creditReport" accept=".pdf" style="display:none;" onchange="handleFileUpload()">
+                    <input type="file" id="creditReport" name="creditReport" accept=".pdf" style="display:none;" disabled>
                 </div>
             </div>
             </div>
@@ -1181,6 +1178,43 @@
 let selectedLoanData = null;   // from searchLoans
 let parsedCreditReport = null; // from AI parse
 let creditBorrowerListenersBound = false;
+
+const LOAN_TYPE_MIN_TARGET = {
+    FHA: 500,
+    VA: 500,
+    Conventional: 620,
+    'Non-QM': 620,
+    DSCR: 620,
+    USDA: 620,
+    HELOC: 620,
+    Other: 620,
+};
+const LOAN_TYPE_DEFAULT_IDEAL = {
+    FHA: 580,
+    VA: 580,
+    Conventional: 680,
+    'Non-QM': 680,
+    DSCR: 700,
+    USDA: 640,
+    HELOC: 720,
+    Other: 680,
+};
+
+function applyLoanTypeScoreDefaults(force) {
+    const loanType = document.getElementById('loanType')?.value;
+    const targetEl = document.getElementById('targetScore');
+    const idealEl = document.getElementById('idealScore');
+    if (!loanType || !targetEl) return;
+    const minTarget = LOAN_TYPE_MIN_TARGET[loanType];
+    if (minTarget == null) return;
+    if (force || !targetEl.dataset.userEdited) {
+        targetEl.value = String(minTarget);
+    }
+    if (idealEl && (force || !idealEl.value || idealEl.dataset.autoFilled === '1')) {
+        idealEl.value = String(LOAN_TYPE_DEFAULT_IDEAL[loanType] ?? '');
+        idealEl.dataset.autoFilled = '1';
+    }
+}
 
 const API = '/api';
 const WIZARD_TOTAL = 6;
@@ -1486,6 +1520,18 @@ function validateStep(stepNum) {
         const anyGoal = panel.querySelector('input[name="repairGoal[]"]:checked');
         if (!anyGoal) ok = false;
     }
+    if (stepNum === 5) {
+        const renting = document.getElementById('isRenting')?.value === 'Yes';
+        if (renting) {
+            ['onTimePayments', 'utilitiesInName'].forEach((name) => {
+                const el = panel.querySelector(`[name="${name}"]`);
+                if (el && !String(el.value || '').trim()) {
+                    ok = false;
+                    el.style.borderColor = '#f26722';
+                }
+            });
+        }
+    }
     return ok;
 }
 
@@ -1788,35 +1834,7 @@ async function onCreditBorrowerSubjectChange() {
 }
 
 async function reloadCreditFromLendingPad() {
-    if (!selectedLoanData) return;
-    const targetBorrowerFullName = getCreditTargetNameForApi();
-    const loanId = selectedLoanData.id;
-    const docSel = document.getElementById('creditDocumentId');
-    const documentId = docSel && docSel.value ? String(docSel.value).trim() : '';
-    showCRStatus('parsing', 'Searching for credit report in LendingPad...');
-    try {
-        const body = { loanId, targetBorrowerFullName };
-        if (documentId) body.documentId = documentId;
-        const result = await apiCall('loadLoan', body);
-        populateCreditDocumentSelect(result.creditDocuments || []);
-        if (result.creditReport) {
-            parsedCreditReport = result.creditReport;
-            applyCreditReportData(parsedCreditReport);
-            showCRStatus(
-                'parsed',
-                'Credit report parsed for ' + (targetBorrowerFullName || 'borrower') + '.'
-            );
-            document.getElementById('crAutoMessage').style.display = 'block';
-        } else {
-            parsedCreditReport = null;
-            showCRStatus(
-                'error',
-                'No credit report found or parse failed. Choose another PDF above or upload manually.'
-            );
-        }
-    } catch (e) {
-        showCRStatus('error', 'Could not fetch credit report: ' + e.message);
-    }
+    return;
 }
 
 function attachLoanAndCreditScopeToPayload(payload) {
@@ -1884,6 +1902,7 @@ async function selectLoan(loan) {
     setField('loanPurpose', purposeNorm, 'lp');
     setField('loanType', normalizeLoanType(loan.loanType), 'lp');
     setField('currentScore', loan.creditScore, 'lp');
+    applyLoanTypeScoreDefaults(true);
 
     if (purposeNorm === 'Refinance') {
         setRadio('housingStatus', 'Own home', 'lp');
@@ -1956,35 +1975,7 @@ function applyCreditReportData(cr) {
 // ============================== Manual PDF upload ==============================
 
 async function handleFileUpload() {
-    const fileInput = document.getElementById('creditReport');
-    const uploadArea = document.getElementById('fileUploadArea');
-    const uploadText = document.getElementById('fileUploadText');
-    if (!fileInput.files.length) return;
-
-    const file = fileInput.files[0];
-    uploadText.textContent = `${file.name} — parsing...`;
-    uploadArea.classList.add('parsing');
-    showCRStatus('parsing', 'Parsing credit report with AI...');
-
-    try {
-        const base64 = await fileToBase64(file);
-        const targetBorrowerFullName = (document.getElementById('fullName').value || '').trim();
-        const result = await apiCall('parseCreditReport', {
-            pdfBase64: base64,
-            targetBorrowerFullName
-        });
-        parsedCreditReport = result.creditReport;
-        applyCreditReportData(parsedCreditReport);
-
-        uploadText.textContent = `${file.name}`;
-        uploadArea.classList.remove('parsing');
-        uploadArea.classList.add('has-file');
-        showCRStatus('parsed', 'Credit report parsed successfully!');
-    } catch (e) {
-        uploadText.textContent = `${file.name} — parse failed`;
-        uploadArea.classList.remove('parsing');
-        showCRStatus('error', 'Parse failed: ' + e.message);
-    }
+    return;
 }
 
 function fileToBase64(file) {
@@ -2103,6 +2094,27 @@ function validateForm() {
 function toggleRentFields() {
     const isRenting = document.querySelector('input[name="housingStatus"][value="Renting"]')?.checked;
     document.getElementById('rentFields').style.display = isRenting ? 'block' : 'none';
+    const isRentingSel = document.getElementById('isRenting');
+    if (isRentingSel) {
+        isRentingSel.value = isRenting ? 'Yes' : (document.querySelector('input[name="housingStatus"]:checked') ? 'No' : '');
+        toggleRentAltFields();
+    }
+}
+
+function toggleRentAltFields() {
+    const renting = document.getElementById('isRenting')?.value === 'Yes';
+    const wrap = document.getElementById('rentAltFields');
+    if (wrap) wrap.style.display = renting ? 'grid' : 'none';
+    ['monthlyRentAlt', 'onTimePayments', 'utilitiesInName'].forEach((id) => {
+        const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+        if (!el) return;
+        if (!renting) {
+            el.value = '';
+            el.removeAttribute('required');
+        } else if (id !== 'monthlyRentAlt') {
+            el.setAttribute('required', 'required');
+        }
+    });
 }
 
 function toggleAUFields() {
@@ -2138,7 +2150,8 @@ function resetForm() {
     wizardSync();
 }
 
-// Drag-and-drop support
+// Drag-and-drop disabled (credit upload off)
+if (false) {
 const dropZone = document.getElementById('fileUploadArea');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--qr-navy-soft)'; });
 dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
@@ -2153,6 +2166,14 @@ dropZone.addEventListener('drop', e => {
         input.files = dt.files;
         handleFileUpload();
     }
+});
+}
+
+document.getElementById('targetScore')?.addEventListener('input', function() {
+    this.dataset.userEdited = '1';
+});
+document.getElementById('idealScore')?.addEventListener('input', function() {
+    delete this.dataset.autoFilled;
 });
 </script>
 </body>
