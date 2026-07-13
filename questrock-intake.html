@@ -1703,6 +1703,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadLendingPadUserList();
         wizardSync();
         initCreditBorrowerScopeListeners();
+        await loadRestoreJobFromUrl();
         const pw = document.getElementById('authPassword');
         if (pw) {
             pw.addEventListener('keydown', (ev) => {
@@ -1743,9 +1744,68 @@ function setRadio(name, value, source) {
 function setCheckboxes(name, values) {
     if (!Array.isArray(values)) return;
     values.forEach(v => {
-        const cb = document.querySelector(`input[name="${name}"][value="${v}"]`);
+        const cb = document.querySelector(`input[name="${name}"][value="${v}"]`)
+            || document.querySelector(`input[name="${name}[]"][value="${v}"]`);
         if (cb) cb.checked = true;
     });
+}
+
+function restoreFormFromSavedData(data) {
+    if (!data || typeof data !== 'object') return;
+    const form = document.getElementById('intakeForm');
+    if (!form) return;
+    for (const [key, raw] of Object.entries(data)) {
+        if (key === 'creditReport') continue;
+        const value = raw === 'UNKNOWN' ? '' : raw;
+        if (Array.isArray(value)) {
+            form.querySelectorAll(`input[name="${key}[]"]`).forEach((cb) => { cb.checked = false; });
+            value.forEach((v) => {
+                const cb = form.querySelector(`input[name="${key}[]"][value="${v}"]`);
+                if (cb) cb.checked = true;
+            });
+            continue;
+        }
+        const str = value == null ? '' : String(value);
+        const radios = form.querySelectorAll(`input[type="radio"][name="${key}"]`);
+        if (radios.length) {
+            setRadio(key, str, 'saved');
+            continue;
+        }
+        const el = form.querySelector(`[name="${key}"]`) || document.getElementById(key);
+        if (el && el.type !== 'file') {
+            el.value = str;
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+    if (data.lendingPadUserId) {
+        const sel = document.getElementById('lendingPadUser');
+        if (sel) sel.value = data.lendingPadUserId;
+    }
+    toggleRentFields();
+    toggleRentAltFields();
+    toggleAUFields();
+    toast('Restored saved intake form.', 'success');
+}
+
+async function loadRestoreJobFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('restoreJob');
+    if (!jobId || !supabaseClient) return;
+    try {
+        const { data: row, error } = await supabaseClient
+            .from('jobs')
+            .select('form_data')
+            .eq('id', jobId)
+            .maybeSingle();
+        if (error) throw error;
+        if (row?.form_data) restoreFormFromSavedData(row.form_data);
+        params.delete('restoreJob');
+        const q = params.toString();
+        window.history.replaceState({}, '', window.location.pathname + (q ? '?' + q : '') + window.location.hash);
+    } catch (e) {
+        toast('Could not restore saved job: ' + (e.message || String(e)), 'error');
+    }
 }
 
 function showCRStatus(cls, text) {

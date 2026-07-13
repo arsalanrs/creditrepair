@@ -492,8 +492,12 @@ function formatIntakeData(d) {
             ? String(cr.extractedForBorrowerName).trim()
             : '';
 
+    const currentMid = Number(d.currentScore);
+    const under500 = Number.isFinite(currentMid) && currentMid > 0 && currentMid < 500;
+
     return `
 QUESTROCK CREDIT OPTIMIZATION INTAKE (v3) — structured fields below. Follow the system prompt's REQUIRED OUTPUT SECTIONS exactly. Do not invent bureau-level tradeline detail not present in this message or in section 11.
+${under500 ? '\n⚠️ MID-SCORE UNDER 500 — default recommendation: outsource to professional credit repair partner (see system prompt rule 9). Still provide three plans.\n' : ''}
 
 Loan officer (LendingPad user): ${d.lendingPadUserName || 'UNKNOWN'} | ${d.lendingPadUserId || 'UNKNOWN'}
 
@@ -811,7 +815,8 @@ INTERNAL ANALYSIS (reason through these before writing; fold conclusions into th
 6. **Authorized user:** base recommendation **only** on intake "Has access to strong AU" and credit summary — **never** prescribe "Add AU" as a primary step if intake says **No** (no phantom AU). If **Unsure**, say what would need to be true before adding; if **Yes (family/friend)**, use stated AU profile.
 7. **Rent reporting (renters):** If housing is **Renting** AND borrower is on a **purchase** path, you **must** include an explicit **RENT REPORTING** decision (EXECUTION PLAN or FILE THICKNESS): Recommend **Yes** or **Skip** with **one sentence tied to score gap, budget, and timeline** — skip if derogs + util + AU path already clears the target in time; if thin file or weak payment depth and clean rent, say yes and note **mortgage FICO 2/4/5 indirect impact**. If intake shows on-time rent / rent alt fields, reference them.
 8. **Experian Boost:** If **Experian is the lowest** of the three bureau scores in the intake (or clearly the binding bottleneck vs target), add a bullet under **UPDATE STRATEGY** or **EXECUTION PLAN** that literally includes the words **"Experian Boost"** (borrower self-serve; minimal LO work). If the user message **STRATEGY FLAGS** line says **Do NOT prioritize**, then do **not** add Boost unless you explain an exception in one sentence.
-9. **Plans A/B/C (strict — always output exactly THREE plans unless budget is unlimited):**
+9. **Mid-score under 500:** If the borrower's mid-score is **below 500**, lead with **OUTSOURCE TO CREDIT REPAIR PARTNER** as Plan A recommendation — QuestRock will refer to a professional credit repair company. Still provide Plans B/C as self-help alternatives if budget allows, but state clearly that in-house DIY is unlikely to reach mortgage-ready scores quickly enough.
+10. **Plans A/B/C (strict — always output exactly THREE plans unless budget is unlimited):**
    - **Budget-limited (default):** Plan A **Total Estimated Spend** must stay **at or below Plan A spend cap** in section 4 and balance **timeline + probability** within the borrower's score improvement window. Plan B = **best alternative** with **moderate** spend increase (toward Plan B cap) OR modest timeline extension — not both maxed. Plan C = **higher spend OR longer timeline** but **must not exceed Plan C spend cap** (typically ≤2.5× budget, e.g. $2,000 budget → Plan C ≤ ~$5,000). Never exceed Plan C cap.
    - **Unlimited budget:** Do NOT inflate spend. Instead output **three speed tiers**: Plan A = fastest path, Plan B = next-fastest (slightly lower cost or fewer levers), Plan C = economy/slower but still viable. Label each with **timeline emphasis**, not higher spend for its own sake.
    - Plan A is always **#1 recommended**. Plans B and C must differ from A in **total spend AND/OR timeline AND/OR levers** — never reorder the same steps.

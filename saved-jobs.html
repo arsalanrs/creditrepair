@@ -266,6 +266,7 @@
             <div id="detailView" hidden>
                 <div class="back-row">
                     <a class="btn-link" href="/saved-jobs" id="backToList">← All saved jobs</a>
+                    <a class="btn-link" id="continueIntakeBtn" href="/" hidden>Continue in intake form →</a>
                 </div>
                 <div class="detail-meta" id="detailMeta"></div>
                 <article class="analysis-prose" id="analysisMount"></article>
@@ -453,6 +454,11 @@ async function loadDetail(id) {
     strongs[1].textContent = lo;
     strongs[2].textContent = kind;
     strongs[3].textContent = formatWhen(data.created_at);
+    const continueBtn = document.getElementById('continueIntakeBtn');
+    if (continueBtn) {
+        continueBtn.hidden = false;
+        continueBtn.href = '/?restoreJob=' + encodeURIComponent(id);
+    }
     const text = typeof data.ai_analysis === 'string' ? data.ai_analysis : '';
     await renderMarkdownToElement(art, text.trim() ? text : '_No analysis text stored._');
 }
